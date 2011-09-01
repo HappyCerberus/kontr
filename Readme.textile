@@ -1,0 +1,7 @@
+h1. Kontr
+
+Kontr is an automatic system for testing programming related homework.
+
+This system is developed and maintained for the Faculty of Informatics for C and C++ programming courses, but can easily be tailored for different languages and systems.
+
+Kontr is implemented in Perl and supports various Unix tools used during C/C++ development and testing.
