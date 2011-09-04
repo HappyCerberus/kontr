@@ -8,19 +8,14 @@ package StudentInfo;
 use strict;
 use warnings;
 use Moose;
-use Moose::Util::TypeConstraints;
 use UserInfo;
 use File::Slurp qw(read_file);
 use Config::Tiny;
+use Helpers;
 
 extends 'UserInfo';
 has 'teacher' => ( isa => 'UserInfo', is => 'rw' );
 has 'is_special' => ( traits => ['Bool'], is => 'rw', isa => 'Bool', default => 0 );
-
-subtype 'filename'
-	=> as 'Str'
-	=> where { -r $_ }
-	=> message { "$_ is not a readable file" };
 
 has 'students_file' => ( is => 'rw', isa => 'filename', default => sub { my $Config = Config::Tiny->new; $Config = Config::Tiny->read('config.ini'); return $Config->{StudentInfo}->{students}; } );
 has 'teachers_file' => ( is => 'rw', isa => 'filename', default => sub { my $Config = Config::Tiny->new; $Config = Config::Tiny->read('config.ini'); return $Config->{StudentInfo}->{teachers}; } );

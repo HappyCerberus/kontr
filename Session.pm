@@ -27,6 +27,9 @@ has 'run_type' => ( is => 'rw', isa => 'RunType', default => 'student' );
 
 has 'masters' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { register_master => 'push', masters_count => 'count', get_master => 'get' } );
 
+has 'required_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] } );
+has 'repo_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+
 # user, class, type
 sub BUILDARGS
 {
@@ -89,12 +92,6 @@ sub process
 	}
 
 	post_test();
-
-# zjistit cestu k session.pl
-# zavolat pre_test
-# for each master_test eval
-#    for each unit_test eval
-# zavolat post_test
 }
 
 no Moose;

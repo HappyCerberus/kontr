@@ -11,20 +11,11 @@ use warnings;
 use Moose;
 use Moose::Util::TypeConstraints;
 
+use Helpers;
 use POSIX;
 #use Cwd;
 use File::stat;
 use Time::HiRes qw(usleep nanosleep);
-
-subtype 'filename'
-	=> as 'Str'
-	=> where { -r $_ }
-	=> message { "$_ is not a readable file" };
-
-subtype 'directory'
-	=> as 'Str'
-	=> where { -d $_ }
-	=> message { "$_ is not an existing directory" };
 
 has 'cmd' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
