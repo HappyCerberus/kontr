@@ -1,3 +1,8 @@
+# Copyright (c) 2011 Mgr. Simon Toth (kontakt@simontoth.cz)
+#
+# Lincensed under the MIT lincense:
+# http://www.opensource.org/licenses/mit-license.php
+
 package SVN;
 
 use strict;
