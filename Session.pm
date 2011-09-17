@@ -12,9 +12,12 @@ use StudentInfo;
 use MasterTest;
 use Log::Message::Simple;
 use Config::Tiny;
+use POSIX;
 
 use warnings;
 use strict;
+
+has 'timestamp' => (traits => ['String'], is => 'rw', isa => 'Str', default => sub { POSIX::strftime("%Y_%m%d_%H%M%S", localtime); } );
 
 has 'register' => ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Str]', default => sub { {} }, handles => { set_value => 'set', get_value => 'get', got_value => 'exists' }, );
 
@@ -29,6 +32,11 @@ has 'masters' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', defa
 
 has 'required_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] } );
 has 'repo_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+
+has 'user_log' => ( is => 'rw', isa => 'Log', default => sub { return new Log(); } );
+has 'teacher_log' => ( is => 'rw', isa => 'Log', default => sub { return new Log(); } );
+
+has 'summary_log' => ( traits => ['String'],  is => 'rw', isa => 'Str', default => '', handles => { add_summary => 'append'  } );
 
 # user, class, type
 sub BUILDARGS
@@ -88,6 +96,7 @@ sub process
 		my $master_path = $script_path."/".$session->get_master($index);
 		my $master_test = new MasterTest();
 		eval `cat $master_path`;
+		print $@ if $@;
 		$master_test->run_tests($session);
 	}
 

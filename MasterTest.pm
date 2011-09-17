@@ -13,13 +13,13 @@ use Moose;
 
 has 'name' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
-has 'stage_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_file => 'push' } );
+has 'stage_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_file => 'push', staged_files => 'elements' } );
 
-has 'compiled_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_file => 'push' } );
+has 'compiled_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_file => 'push', staged_compiled_files => 'elements', compiled_files_string => 'join' } );
 
-has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_student_file => 'push' } );
+has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_student_file => 'push', staged_student_files => 'elements' } );
 
-has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_student_file => 'push' } );
+has 'compiled_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_student_file => 'push', staged_compiled_student_files => 'elements', compiled_student_files_string => 'join' } );
 
 has 'units' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { register_unit => 'push', units_count => 'count', get_unit => 'get' } );
 
@@ -39,9 +39,13 @@ sub run_tests
 
 	for ($index = 0; $index < $master_test->units_count; $index++)
 	{
-		my $unit_test = new UnitTest();
+		my $user_log = new Log(parent => $session->user_log, nocomit => 0 );
+		my $teacher_log = new Log(parent => $session->teacher_log, nocomit => 0 );
+
+		my $unit_test = new UnitTest( master => $master_test, session => $session, user_log => $user_log, teacher_log => $teacher_log );
 		my $unit_path = $script_path."/".$master_test->get_unit($index);
 		eval `cat $unit_path`;
+		print $@ if $@;
 	}
 }
 

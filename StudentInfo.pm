@@ -49,6 +49,7 @@ sub read_info
 		$self->email($values[2]);
 		$self->name($name);
 		$self->is_special(1);
+		$self->teacher($self);
 	}
 	else
 	{

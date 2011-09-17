@@ -28,7 +28,6 @@ has 'work_path' => ( is => 'rw', isa => 'directory', default => '/home/xtoth1' )
 has 'limit_runtime' => ( traits => ['Number'], is => 'rw', isa => 'Int', default => 120 );
 has 'limit_output' => ( traits => ['Number'], is => 'rw', isa => 'Int', default => 65536 );
 
-
 enum 'ExitType', [ qw(normal error_signal error_system limit_time limit_size) ];
 
 has 'success' => ( traits => ['Bool'], is => 'rw', isa => 'Bool', default => 1, handles => { failure => 'not' } );
@@ -87,8 +86,22 @@ sub exec
 		my $deadpid = 0;
 		my $result = 0;
 
-		my $stdout = $self->output_path.".".$pid.".stdout";
-		my $stderr = $self->output_path.".".$pid.".stderr";
+		my $stdout;
+		my $stderr;
+
+		if ($self->output_path ne '')
+		{
+			$stdout = $self->output_path.".".$pid.".stdout";
+			$stderr = $self->output_path.".".$pid.".stderr";
+		}
+		else
+		{
+			$stdout = $self->stdout_path;
+			$stderr = $self->stderr_path;
+		}
+
+		$self->stdout_path($stdout);
+		$self->stderr_path($stderr);
 
 		my $end_type; 
 
