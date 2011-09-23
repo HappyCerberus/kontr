@@ -26,7 +26,7 @@ sub generate
 	$work_path .= "/".$session->task;
 	$work_path .= "/".$session->user->login."_".$session->timestamp;
 
-	my $repo_path = $session->repo_path;
+	my $repo_path = $session->repo_path."/".$session->task;
 
 	my @files = split /\n/, `ls -1 $repo_path/*.c $repo_path/*.h $repo_path/*.cpp $repo_path/*.cc 2>/dev/null`;
 
