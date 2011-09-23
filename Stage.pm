@@ -20,14 +20,15 @@ sub stage
 	my $self = shift;
 	my $test = shift;
 
-	my $src_path = shift;
+	my $src_path_teach = shift;
+	my $src_path_student = shift;
 	my $dst_path = shift;
 
 	my $i;
 
 	foreach $i ($test->staged_files)
 	{
-		my $file = $src_path."/".$i;
+		my $file = $src_path_teach."/".$i;
 		my $target = $dst_path."/".$i;
 		unless (-r $file) { $self->result('teacher_file_missing'); return; }
 		if (-r $target) { $self->result('stage_file_duplicate'); return; }
@@ -37,7 +38,7 @@ sub stage
 
 	foreach $i ($test->staged_compiled_files)
 	{
-		my $file = $src_path."/".$i;
+		my $file = $src_path_teach."/".$i;
 		my $target = $dst_path."/".$i;
 		unless (-r $file) { $self->result('teacher_file_missing'); return; }
 		if (-r $target) { $self->result('stage_file_duplicate'); return; }
@@ -47,7 +48,7 @@ sub stage
 
 	foreach $i ($test->staged_student_files)
 	{
-		my $file = $src_path."/".$i;
+		my $file = $src_path_student."/".$i;
 		my $target = $dst_path."/".$i;
 		unless (-r $file) { $self->result('student_file_missing'); return; }
 		if (-r $target) { $self->result('stage_file_duplicate'); return; }
@@ -57,7 +58,7 @@ sub stage
 
 	foreach $i ($test->staged_compiled_student_files)
 	{
-		my $file = $src_path."/".$i;
+		my $file = $src_path_student."/".$i;
 		my $target = $dst_path."/".$i;
 		unless (-r $file) { $self->result('student_file_missing'); return; }
 		if (-r $target) { $self->result('stage_file_duplicate'); return; }
@@ -103,13 +104,13 @@ sub prepare
 	my $teacher_src=$Config->{Tests}->{files_path}."/".$session->class."/".$session->task;
 
 	$self->result('success');
-	
+
 	# files from master test
-	$self->stage($master_test,$teacher_src,$tmp_path);
+	$self->stage($master_test,$teacher_src,$student_src,$tmp_path);
 	return unless $self->result eq 'success';
 
 	# files from unit test
-	$self->stage($unit_test,$student_src,$tmp_path);
+	$self->stage($unit_test,$teacher_src,$student_src,$tmp_path);
 	return unless $self->result eq 'success';
 
 	$unit_test->work_path($tmp_path);
