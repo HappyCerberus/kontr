@@ -20,7 +20,7 @@ use Time::HiRes qw(usleep nanosleep);
 has 'cmd' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
 has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
-has 'stdin_path' => ( is => 'rw', isa => 'filename', default => '/dev/null' );
+has 'stdin_path' => ( traits => ['String'],  is => 'rw', isa => 'Str', default => '/dev/null' );
 has 'stdout_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '/dev/null' );
 has 'stderr_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '/dev/null' );
 has 'work_path' => ( is => 'rw', isa => 'directory', default => '/home/xtoth1' );
