@@ -28,13 +28,13 @@ around 'exec' => sub
 	$self->stdin_path('/dev/null');
 	$self->output_path($unit_test->work_path."/difference");
 	if ($mode eq 'case')
-	{ return $self->$orig('-i',$f1,$f2); }
+	{ return $self->$orig('-c','-i',$f1,$f2); }
 	elsif ($mode eq 'space')
-	{ return $self->$orig('-b','-B','-w',$f1,$f2); }
+	{ return $self->$orig('-c','-b','-B','-w',$f1,$f2); }
 	elsif ($mode eq 'normal')
-	{ return $self->$orig($f1,$f2); }
+	{ return $self->$orig('-c',$f1,$f2); }
 	elsif ($mode eq 'casespace')
-	{ return $self->$orig('-b','-B','-w','-i',$f1,$f2); }
+	{ return $self->$orig('-c','-b','-B','-w','-i',$f1,$f2); }
 };
 
 no Moose;
