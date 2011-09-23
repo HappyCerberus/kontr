@@ -80,6 +80,7 @@ sub process
 
 	print $session_path."\n";
 	eval `cat $session_path`;
+	print $@ if $@;
 	pre_test();
 
 	# verify settings run
