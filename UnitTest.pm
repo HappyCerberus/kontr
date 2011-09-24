@@ -55,7 +55,7 @@ sub compile
 
 	# compile
 	$self->compilation(new Compiler());
-	$self->compilation->compile($self); 
+	$self->compilation->compile($self);
 
 	# log result
 	my $nocomit = $self->user_log->nocomit;
@@ -80,7 +80,7 @@ sub run
 	my $self = shift;
 	my $input = shift;
 	
-	$self->execution(new Run());
+	$self->execution(new Run(unit => $self));
 	$self->execution->exec($self,$input,@_);
 }
 
@@ -109,7 +109,7 @@ sub diff_generic
 	my $file1 = shift;
 	my $file2 = shift;
 
-	$self->difference(new Diff());
+	$self->difference(new Diff(unit => $self));
 	$self->difference->exec($self,$mode,$file1,$file2);
 }
 
@@ -118,7 +118,7 @@ sub analyze_stdout
 	my $self = shift;
 	my $cmd = shift;
 
-	$self->analysis(new Analysis());
+	$self->analysis(new Analysis(unit => $self));
 	$self->analysis->exec($self,$cmd,$self->execution->stdout_path,@_);
 }
 
@@ -127,7 +127,7 @@ sub analyze_stderr
 	my $self = shift;
 	my $cmd = shift;
 
-	$self->analysis(new Analysis());
+	$self->analysis(new Analysis(unit => $self));
 	$self->analysis->exec($self,$cmd,$self->execution->stderr_path,@_);	
 }
 
