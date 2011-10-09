@@ -184,5 +184,47 @@ sub log_mode
 	}
 }
 
+sub log_run_fail
+{
+	my $self = shift;
+	my $prefix = shift;
+
+	my $Config = Config::Tiny->new;
+	$Config = Config::Tiny->read('config.ini');
+
+	if ($self->execution->exit_type eq 'error_system')
+	{
+		$self->log($prefix.$Config->{Run}->{fail_system}."\n");
+	}
+	elsif ($self->execution->exit_type eq 'limit_time')
+	{
+		$self->log($prefix.$Config->{Run}->{fail_time}."\n");
+	}
+	elsif ($self->execution->exit_type eq 'limit_size')
+	{
+		$self->log($prefix.$Config->{Run}->{fail_size}."\n");
+	}
+	elsif ($self->execution->exit_type eq 'error_signal')
+	{
+		$self->log($prefix.$Config->{Run}->{fail_signal});
+
+		if ($self->execution->exit_value == 4)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_ill}."\n"); }
+		elsif ($self->execution->exit_value == 6)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_abrt}."\n"); }
+		elsif ($self->execution->exit_value == 8)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_fpe}."\n"); }
+		elsif ($self->execution->exit_value == 9)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_kill}."\n"); }
+		elsif ($self->execution->exit_value == 11)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_segv}."\n"); }
+		elsif ($self->execution->exit_value == 15)
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_term}."\n"); }
+		else
+		{ $self->log($prefix.$Config->{Run}->{fail_signal_gen}."\n"); } 
+	}
+	else { return; }
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
