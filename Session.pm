@@ -13,6 +13,7 @@ use MasterTest;
 use Log::Message::Simple;
 use Config::Tiny;
 use POSIX;
+use Attachment;
 
 use warnings;
 use strict;
@@ -37,6 +38,9 @@ has 'user_log' => ( is => 'rw', isa => 'Log', default => sub { return new Log();
 has 'teacher_log' => ( is => 'rw', isa => 'Log', default => sub { return new Log(); } );
 
 has 'summary_log' => ( traits => ['String'],  is => 'rw', isa => 'Str', default => '', handles => { add_summary => 'append'  } );
+
+has 'attach_teacher' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Attachment]', default => sub { [] }, handles => { add_teacher_attach => 'push', teacher_attach_count => 'count', get_teacher_attach => 'get', teacher_attachments => 'elements' } );
+has 'attach_student' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Attachment]', default => sub { [] }, handles => { add_student_attach => 'push', student_attach_count => 'count', get_student_attach => 'get', student_attachments => 'elements' } );
 
 # user, class, type
 sub BUILDARGS

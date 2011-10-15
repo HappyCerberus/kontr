@@ -85,19 +85,19 @@ sub prepare
 	# class/task/user_timestamp/master_test/unit_test
 	
 	$tmp_path .= "/".$session->class;
-	mkdir $tmp_path, 0700 unless -d $tmp_path; # /class
+	mkdir $tmp_path unless -d $tmp_path; # /class
 
 	$tmp_path .= "/".$session->task;
-	mkdir $tmp_path, 0700 unless -d $tmp_path; # /task
+	mkdir $tmp_path unless -d $tmp_path; # /task
 
 	$tmp_path .= "/".$session->user->login."_".$session->timestamp;
-	mkdir $tmp_path, 0700 unless -d $tmp_path; # /timestamp
+	mkdir $tmp_path unless -d $tmp_path; # /timestamp
 
 	$tmp_path .= "/".$master_test->name;
-	mkdir $tmp_path, 0700 unless -d $tmp_path; # /master_test
+	mkdir $tmp_path unless -d $tmp_path; # /master_test
 
 	$tmp_path .= "/".$unit_test->name;
-	mkdir $tmp_path, 0700 unless -d $tmp_path; # /unit_test
+	mkdir $tmp_path unless -d $tmp_path; # /unit_test
 
 	# directories are created, now copy all requested files
 	my $student_src=$session->repo_path."/".$session->task;
@@ -114,6 +114,7 @@ sub prepare
 	return unless $self->result eq 'success';
 
 	$unit_test->work_path($tmp_path);
+	$unit_test->file_path($teacher_src);
 }
 
 no Moose;

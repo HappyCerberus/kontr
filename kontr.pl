@@ -12,6 +12,8 @@ print "[KONTR] SESSION START\n";
 
 my $session = new Session(@ARGV);
 
+print "<user>".$session->user->login."\n";
+
 # Fetch current SVN
 my $svn = new SVN();
 $svn->fetch($session);
@@ -43,7 +45,15 @@ $student->set_param(student => $session->user->name);
 $student->set_param(uco => $session->user->uco);
 $student->set_param(login => $session->user->login);
 $student->set_param(cvicici => $session->user->teacher->name);
-$student->send();
+
+my @sparam;
+foreach ($session->student_attachments)
+{
+	push @sparam, $_->filename;
+	push @sparam, $_->name;
+	push @sparam, $_->mime;
+}
+$student->send(@sparam);
 
 if ($session->run_type eq 'teacher')
 {
@@ -67,6 +77,12 @@ if ($session->run_type eq 'teacher')
 		push @param, $_;
 		push @param, $short;
 		push @param, 'text/html';
+	}
+	foreach ($session->teacher_attachments)
+	{
+		push @param, $_->filename;
+		push @param, $_->name;
+		push @param, $_->mime;
 	}
 	$teacher->send(@param);
 }

@@ -32,6 +32,7 @@ has 'master' => ( is => 'rw', isa => 'MasterTest' );
 has 'session' => ( is => 'rw', isa => 'Session' );
 
 has 'work_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'file_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
 has 'user_log' => ( is => 'rw', isa => 'Log' );
 has 'teacher_log' => ( is => 'rw', isa => 'Log' );
@@ -90,7 +91,7 @@ sub diff_stdout
 	my $mode = shift;
 	my $file = shift;
 
-	$self->diff_generic($mode,$self->execution->stdout_path,$file);
+	$self->diff_generic($mode,$self->execution->stdout_path,$self->file_path."/".$file);
 }
 
 sub diff_stderr
@@ -99,7 +100,7 @@ sub diff_stderr
 	my $mode = shift;
 	my $file = shift;
 	
-	$self->diff_generic($mode,$self->execution->stderr_path,$file);	
+	$self->diff_generic($mode,$self->execution->stderr_path,$self->file_path."/".$file);	
 }
 
 sub diff_generic
@@ -129,6 +130,27 @@ sub analyze_stderr
 
 	$self->analysis(new Analysis(unit => $self));
 	$self->analysis->exec($self,$cmd,$self->execution->stderr_path,@_);	
+}
+
+sub add_attachment
+{
+	my $self = shift;
+	my $data = shift;
+	my $type = shift;
+
+	$type = 'both' unless defined $type;
+
+	if ($type eq 'both' || $type eq 'teacher')
+	{
+		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->session->add_teacher_attach($attach);
+	}
+
+	if ($type eq 'both' || $type eq 'student')
+	{
+		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->session->add_student_attach($attach);
+	}
 }
 
 sub log
