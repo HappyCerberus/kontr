@@ -33,12 +33,14 @@ sub compile
 	my $f2 = $test->compiled_student_files_string(" ");
 	my $f3 = $test->master->compiled_files_string(" ");
 	my $f4 = $test->master->compiled_student_files_string(" ");
+	my $f5 = $test->extra_compiler_flags;
 	
 	my $cmd = " ";
 	if (defined $f1) { $cmd .= " ".$f1; }
 	if (defined $f2) { $cmd .= " ".$f2; }
 	if (defined $f3) { $cmd .= " ".$f3; }
 	if (defined $f4) { $cmd .= " ".$f4; }
+        if (defined $f5) { $cmd .= " ".$f5; }
 
 	$cmd = $comp_flags." ".$cmd." -o ".$test->name;
 	
