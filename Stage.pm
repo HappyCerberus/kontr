@@ -14,6 +14,7 @@ has 'path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
 enum 'StageResult', [ qw(success teacher_file_missing student_file_missing stage_file_duplicate) ];
 has 'result' => ( is => 'rw', isa => 'StageResult', default => 'success' );
+has 'result_error' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '');
 
 sub stage
 {
@@ -30,8 +31,8 @@ sub stage
 	{
 		my $file = $src_path_teach."/".$i;
 		my $target = $dst_path."/".$i;
-		unless (-r $file) { $self->result('teacher_file_missing'); return; }
-		if (-r $target) { $self->result('stage_file_duplicate'); return; }
+		unless (-r $file) { $self->result('teacher_file_missing'); $self->result_error($file); return; }
+		if (-r $target) { $self->result('stage_file_duplicate'); $self->result_error($file); return; }
 
 		`cp $file $target`;
 	}
@@ -40,8 +41,8 @@ sub stage
 	{
 		my $file = $src_path_teach."/".$i;
 		my $target = $dst_path."/".$i;
-		unless (-r $file) { $self->result('teacher_file_missing'); return; }
-		if (-r $target) { $self->result('stage_file_duplicate'); return; }
+		unless (-r $file) { $self->result('teacher_file_missing'); $self->result_error($file); return; }
+		if (-r $target) { $self->result('stage_file_duplicate'); $self->result_error($file); return; }
 
 		`cp $file $target`;
 	}
@@ -50,8 +51,8 @@ sub stage
 	{
 		my $file = $src_path_student."/".$i;
 		my $target = $dst_path."/".$i;
-		unless (-r $file) { $self->result('student_file_missing'); return; }
-		if (-r $target) { $self->result('stage_file_duplicate'); return; }
+		unless (-r $file) { $self->result('student_file_missing'); $self->result_error($file); return; }
+		if (-r $target) { $self->result('stage_file_duplicate'); $self->result_error($file); return; }
 
 		`cp $file $target`;
 	}
@@ -60,8 +61,8 @@ sub stage
 	{
 		my $file = $src_path_student."/".$i;
 		my $target = $dst_path."/".$i;
-		unless (-r $file) { $self->result('student_file_missing'); return; }
-		if (-r $target) { $self->result('stage_file_duplicate'); return; }
+		unless (-r $file) { $self->result('student_file_missing'); $self->result_error($file); return; }
+		if (-r $target) { $self->result('stage_file_duplicate'); $self->result_error($file); return; }
 
 		`cp $file $target`;
 	}

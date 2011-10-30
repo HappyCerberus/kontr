@@ -49,7 +49,7 @@ sub compile
 	my $self = shift;
 	my $stage = new Stage();
 	$stage->prepare($self);
-	if ($stage->result ne 'success') { die "Couldn't stage ".$stage->result."\n"; }
+	if ($stage->result ne 'success') { die "Couldn't stage ".$stage->result." (file ".$stage->result_error.")\n"; }
 
 	my $Config = Config::Tiny->new;
 	$Config = Config::Tiny->read('config.ini');
