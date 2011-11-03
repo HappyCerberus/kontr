@@ -17,6 +17,7 @@ use Compiler;
 use Run;
 use Analysis;
 use Diff;
+use Valgrind;
 
 has 'name' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
 
@@ -43,6 +44,7 @@ has 'extra_compiler_flags' => ( traits => ['String'], is => 'rw', isa => 'Str', 
 has 'execution' => ( is => 'rw', isa => 'Run' );
 has 'analysis' => ( is => 'rw', isa => 'Analysis' );
 has 'difference' => ( is => 'rw', isa => 'Diff' );
+has 'valgrind' => ( is => 'rw', isa => 'Valgrind' );
 
 sub compile
 {
@@ -83,6 +85,14 @@ sub run
 	
 	$self->execution(new Run(unit => $self));
 	$self->execution->exec($self,$input,@_);
+}
+
+sub run_grind
+{
+	my $self = shift;
+	my $input = shift;
+	$self->valgrind(new Valgrind(unit => $self));
+	$self->valgrind->exec($self,$input,@_);
 }
 
 sub diff_stdout

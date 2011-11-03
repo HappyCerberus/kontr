@@ -1,0 +1,85 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+	echo "Usage - valgrind output";
+	echo "STDOUT contains analysis, STDERR contains human readible analysis";
+	exit;
+fi
+
+FILE=$1
+
+function mismatched {
+	local output="`cat $FILE | grep -i 'Mismatched free' | wc -l`"
+	if [ $output -eq 0 ]; then
+		echo "MISMATCHED: 0" >&1
+		echo "No mismatched free/delete/delete[]" >&2
+	else		
+		echo "MISMATCHED: $output" >&1
+		echo "Number of mismatched free/delete/delete[]: $output " >&2
+	fi
+}
+
+function read {
+	local output="`cat $FILE | grep -i 'Invalid read of size' | wc -l`"
+	if [ $output -eq 0 ]; then
+		echo "READ: 0" >&1
+		echo "No invalid read" >&2
+	else		
+		echo "READ: $output" >&1
+		echo "Number of invalid reads: $output " >&2
+	fi
+}
+
+function write {
+	local output="`cat $FILE | grep -i 'Invalid write of size' | wc -l`"
+	if [ $output -eq 0 ]; then
+		echo "WRITE: 0" >&1
+		echo "No invalid write" >&2
+	else		
+		echo "WRITE: $output" >&1
+		echo "Number of invalid writes: $output " >&2
+	fi
+}
+
+function invalid {
+	local output="`cat $FILE | grep -i 'Invalid free' | wc -l`"
+	if [ $output -eq 0 ]; then
+		echo "INVALID: 0" >&1
+		echo "No invalid free/delete/delete[]" >&2
+	else		
+		echo "INVALID: $output" >&1
+		echo "Number of invalid free/delete/delete[]: $output" >&2
+	fi
+}
+
+function leaks {
+	local tst="`cat $FILE | grep -i 'definitely lost:' | wc -l`"
+	local output=(`cat $FILE | grep -i 'definitely lost:' | sed 's/^.*lost: \([0-9]\+\) bytes in \([0-9]\+\) blocks.*$/\\2\n\\1/'`)
+	if [ $tst -eq 0 ]; then
+		echo "LEAKS: 0 0" >&1
+		echo "No memory leaks" >&2
+	else
+		echo "LEAKS: ${output[0]} ${output[1]}" >&1
+		echo "Number of memory leaks: ${output[1]} bytes in ${output[0]} blocks" >&2
+	fi
+}
+
+function files {
+	local output1="`cat $FILE | grep -i 'FILE DESCRIPTORS:' | sed 's/^.*DESCRIPTORS: \([0-9]\+\) open at exit.*$/\\1/'`"
+	local output2="`cat $FILE | grep -i '<inherited from parent>' | wc -l`"
+	local output=$(expr $output1 - $output2)
+	if [ $output -eq 0 ]; then
+		echo "FILES: 0" >&1
+		echo "No opened files" >&2
+	else		
+		echo "FILES: $output" >&1
+		echo "Number of opened files: $output" >&2
+	fi
+}
+
+mismatched 
+invalid 
+read 
+write 
+leaks 
+files 
