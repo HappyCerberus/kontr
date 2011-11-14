@@ -15,10 +15,10 @@ use File::Temp;
 use Exec;
 extends 'Exec';
 
-has 'grind_errors' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'grind_errors' => ( traits => ['Bool'], is => 'rw', isa => 'Bool', default => '' );
 has 'grind_data' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 has 'grind_user' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
-
+has 'grind_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
 around 'exec' => sub
 {
@@ -30,8 +30,7 @@ around 'exec' => sub
 	if ($unit_test->session->got_value('run_timeout'))
 	{ $self->limit_runtime($unit_test->session->get_value('run_timeout')); }
 
-	my $tmp = File::Temp->new();
-	$tmp->unlink_on_destroy(1);	
+	my $tmp = File::Temp->new( TEMPLATE => 'grindXX', DIR => $unit_test->work_path, SUFFIX => '.out');
 
 	$self->work_path($unit_test->work_path);
 	$self->cmd("valgrind",$unit_test->work_path."/".$unit_test->name);
@@ -52,7 +51,8 @@ around 'exec' => sub
 
 	$self->grind_errors(length $res);
 	$self->grind_data($grind_stdout);
-	$self->grind_user($grind_stderr);	
+	$self->grind_user($grind_stderr);
+	$self->grind_path($grind_in);
 };
 
 no Moose;
