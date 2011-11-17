@@ -41,7 +41,7 @@ has 'teacher_log' => ( is => 'rw', isa => 'Log' );
 has 'compilation' => ( is => 'rw', isa => 'Compiler' );
 has 'extra_compiler_flags' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
-has 'execution' => ( is => 'rw', isa => 'Run' );
+has 'execution' => ( is => 'rw', isa => 'Exec' );
 has 'analysis' => ( is => 'rw', isa => 'Analysis' );
 has 'difference' => ( is => 'rw', isa => 'Diff' );
 has 'valgrind' => ( is => 'rw', isa => 'Valgrind' );
@@ -93,6 +93,7 @@ sub run_grind
 	my $input = shift;
 	$self->valgrind(new Valgrind(unit => $self));
 	$self->valgrind->exec($self,$input,@_);
+	$self->execution($self->valgrind);
 }
 
 sub diff_stdout

@@ -15,7 +15,7 @@ use File::Temp;
 use Exec;
 extends 'Exec';
 
-has 'grind_errors' => ( traits => ['Bool'], is => 'rw', isa => 'Bool', default => '' );
+has 'grind_errors' => ( traits => ['Bool'], is => 'rw', isa => 'Bool', default => 0 );
 has 'grind_data' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 has 'grind_user' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 has 'grind_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
@@ -30,7 +30,7 @@ around 'exec' => sub
 	if ($unit_test->session->got_value('run_timeout'))
 	{ $self->limit_runtime($unit_test->session->get_value('run_timeout')); }
 
-	my $tmp = File::Temp->new( TEMPLATE => 'grindXX', DIR => $unit_test->work_path, SUFFIX => '.out');
+	my $tmp = File::Temp->new( TEMPLATE => 'grindXXXX', DIR => $unit_test->work_path, SUFFIX => '.out', UNLINK => 0);
 
 	$self->work_path($unit_test->work_path);
 	$self->cmd("valgrind",$unit_test->work_path."/".$unit_test->name);
@@ -49,7 +49,7 @@ around 'exec' => sub
 	`$grind_bin $grind_in >$grind_stdout 2>$grind_stderr`;
 	my $res = `diff $grind_stdout $grind_empty`;
 
-	$self->grind_errors(length $res);
+	$self->grind_errors(length $res > 0);
 	$self->grind_data($grind_stdout);
 	$self->grind_user($grind_stderr);
 	$self->grind_path($grind_in);
