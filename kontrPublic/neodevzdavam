@@ -1,0 +1,76 @@
+#!/packages/run/links/bin/perl -I/home/xtoth1/kontrPublic
+
+
+use StudentInfo;
+use Try::Tiny;
+use utf8;
+no utf8;
+
+# required parameters: class homework type
+if (scalar @ARGV != 3)
+{
+	printf	"Tento skript vyžaduje přesně tři parametry.\n".
+		"\t* předmět (cecko, cpp)\n".
+		"\t* domácí úkol (hwXX)\n".
+		"\t* typ odevzdání (nanecisto, naostro)\n";
+
+	exit 1;
+}
+
+my $class = $ARGV[0];
+my $homework = $ARGV[1];
+my $type = $ARGV[2];
+
+# validate parameters
+@cparams = qw(pb071 pb161);
+if (not $class ~~ @cparams)
+{
+	printf	"Podporované hondoty pro předmět jsou:\n".
+		"\t* pb071 - Uvod do jazyka C\n".
+		"\t* pb161 - Programovani v jazyce C++\n";
+
+	exit 1;
+}
+
+@tparams = qw(nanecisto naostro);
+if (not $type ~~ @tparams)
+{
+	printf	"Podporované hondoty pro typ odevzdání:\n".
+		"\t* nanecisto\n".
+		"\t* naostro\n";
+
+	exit 1;
+}
+
+my $info;
+my $login;
+try {
+	$login = getlogin || getpwuid($<) || "Anonymous";
+	$info = new StudentInfo(login=>$login,class=>$class,students_file=>"/home/xtoth1/students.dat",teachers_file=>"/home/xtoth1/teachers.dat");
+} catch {
+	printf  "Nejste zadaven v systému automatických oprav, nebo je v databázi chyba.\n".
+		"Kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
+	printf $_;
+} finally {
+	if ($info->is_special())
+	{
+		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
+	}
+	elsif (not -r "/home/xtoth1/kontrPublic/odevzdani/${class}_${homework}_${type}")
+	{
+		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
+		exit 1; 
+	}
+
+	printf "Probíhá zrušení odevzdání domácího úkolu \"$homework\" v režimu \"$type\".\n\n";
+	printf "Student detekován jako: '".$info->name."' UČO: '".$info->uco."' email: '".$info->email."' unix login: '".$info->login."'\n";
+	printf "Student patří pod: '".$info->teacher->name."' UČO: '".$info->teacher->uco."' email: '".$info->teacher->email."' unix login: '".$info->teacher->login."'\n"  unless $info->is_special;
+	printf "Pokud je některý z údajů nesprávný, okamžitě kontaktujte správce kontru.\n\n";
+
+	my $path;
+
+	if ($info->is_special) { $path = "/home/xtoth1/kontrPublic/odevzdani/special_${class}_${type}_${login}_${homework}"; }
+	else { $path = "/home/xtoth1/kontrPublic/odevzdani/odevzdavam_${class}_${type}_${login}_${homework}"; }
+
+	`rm -f $path`;
+}
