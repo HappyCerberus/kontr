@@ -4,13 +4,17 @@
 use StudentInfo;
 use Try::Tiny;
 use utf8;
+use Moose::Util::TypeConstraints;
+use Types;
+use Submission;
+use Homework;
 no utf8;
 
 # required parameters: class homework type
 if (scalar @ARGV != 3)
 {
 	printf	"Tento skript vyžaduje přesně tři parametry.\n".
-		"\t* předmět (cecko, cpp)\n".
+		"\t* předmět (pb071 pro cecko, pb161 pro cpp)\n".
 		"\t* domácí úkol (hwXX)\n".
 		"\t* typ odevzdání (nanecisto, naostro)\n";
 
@@ -22,20 +26,18 @@ my $homework = $ARGV[1];
 my $type = $ARGV[2];
 
 # validate parameters
-@cparams = qw(pb071 pb161);
-if (not $class ~~ @cparams)
+if (not find_type_constraint('SubmissionClass')->check($class))
 {
-	printf	"Podporované hondoty pro předmět jsou:\n".
+	printf	"Podporované hodnoty pro předmět jsou:\n".
 		"\t* pb071 - Uvod do jazyka C\n".
 		"\t* pb161 - Programovani v jazyce C++\n";
 
 	exit 1;
 }
 
-@tparams = qw(nanecisto naostro);
-if (not $type ~~ @tparams)
+if (not find_type_constraint('SubmissionMode')->check($type))
 {
-	printf	"Podporované hondoty pro typ odevzdání:\n".
+	printf	"Podporované hodnoty pro typ odevzdání:\n".
 		"\t* nanecisto\n".
 		"\t* naostro\n";
 
@@ -46,20 +48,31 @@ my $info;
 my $login;
 try {
 	$login = getlogin || getpwuid($<) || "Anonymous";
-	$info = new StudentInfo(login=>$login,class=>$class,students_file=>"/home/xtoth1/students.dat",teachers_file=>"/home/xtoth1/teachers.dat");
+	$info = new StudentInfo(login => $login, class => $class);
 } catch {
 	printf  "Nejste zadaven v systému automatických oprav, nebo je v databázi chyba.\n".
 		"Kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
 	printf $_;
 } finally {
+	my $h = new Homework(name => $homework, class => $class);
+	my $s = new Submission(user => $info, homework => $h, mode => $type);
 	if ($info->is_special())
 	{
 		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
 	}
-	elsif (not -r "/home/xtoth1/kontrPublic/odevzdani/${class}_${homework}_${type}")
+	elsif (not $h->is_opened)
 	{
 		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
 		exit 1; 
+	}
+	if ($s->file) {
+		printf "Tento domácí úkol máte již v tomto režimu odevzdán.\n";
+		printf "Pokud již uběhlo více jak 30 minut, tak prosíme kontaktujte správce (toth\@fi.muni.cz) s detaily (především aktuální čas, váš login, domácí úkol a typ odevzdání.";
+		exit 1;
+	}
+	if (not $info->is_special() and not $s->can_submit) {
+		printf "Domácí úkol nemůžete odevzdat.\n";
+		exit 1;
 	}
 
 	printf "Probíhá odevzdání domácího úkolu \"$homework\" v režimu \"$type\".\n\n";
@@ -67,11 +80,8 @@ try {
 	printf "Student patří pod: '".$info->teacher->name."' UČO: '".$info->teacher->uco."' email: '".$info->teacher->email."' unix login: '".$info->teacher->login."'\n"  unless $info->is_special;
 	printf "Pokud je některý z údajů nesprávný, okamžitě kontaktujte správce kontru.\n\n";
 
-	printf "Odevzdání můžete do 15 minut zrušit pomocí příkazu \"neodevzdavam\" s idetickými parametry.\n";
+	printf "Odevzdání můžete do méně jak 5 minut zrušit pomocí příkazu \"neodevzdavam\" s identickými parametry.\n";
 	printf "Příjemný den a hodně štěstí přeje automatický systém oprav domácích úkolů.\n";
 
-	if ($info->is_special)
-	{ open(ODEVZDANO,">/home/xtoth1/kontrPublic/odevzdani/special_${class}_${type}_${login}_${homework}"); close(ODEVZDANO); }
-	else
-	{ open(ODEVZDANO,">/home/xtoth1/kontrPublic/odevzdani/odevzdavam_${class}_${type}_${login}_${homework}"); close(ODEVZDANO); }
+	$s->submit();
 }
