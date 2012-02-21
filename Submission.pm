@@ -119,5 +119,28 @@ sub validate_remove {
 	return 0;
 }
 
+sub get_all {
+	my $prefix = prefix();
+	
+	opendir(DIR, $prefix) || die("Cannot open submission directory");
+	my @files = readdir(DIR);
+	closedir(DIR);
+	
+	grep { find_type_constraint('SubmissionFile')->check($prefix.$_) } @files;
+}
+
+sub get_bad {
+	my $prefix = prefix();
+	
+	opendir(DIR, $prefix) || die("Cannot open submission directory");
+	my @files = readdir(DIR);
+	closedir(DIR);
+	
+	my @good = get_all();
+	push(@good, ('.', '..'));
+	
+	grep { my $m = $_; not scalar grep { $_ eq $m} @good } @files;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
