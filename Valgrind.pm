@@ -31,6 +31,8 @@ around 'exec' => sub
 	{ $self->limit_runtime($unit_test->session->get_value('run_timeout')); }
 
 	my $tmp = File::Temp->new( TEMPLATE => 'grindXXXX', DIR => $unit_test->work_path, SUFFIX => '.out', UNLINK => 0);
+	my $filename = $tmp->filename;
+	`setfacl -m m:rx $filename`;
 
 	$self->work_path($unit_test->work_path);
 	$self->cmd("valgrind",$unit_test->work_path."/".$unit_test->name);
