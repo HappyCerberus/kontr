@@ -72,7 +72,7 @@ sub _fetch_dir {
 		if (system($cmd) != 0) {
 			$self->result('cant_update');
 		}
-		`cd -;`;
+		#`cd -;`;
 	}
 	
 	return -d $dir;
@@ -97,10 +97,10 @@ sub _fetch_file {
 	my $cmd = "cd $prev; svn update -r $rev $name";
 	if (system("$cmd") != 0) {
 		$self->result('cant_update');
-		`cd -;`;
+		#`cd -;`;
 		return 1; #Immediate stop
 	}
-	`cd -;`;
+	#`cd -;`;
 	
 	if (-f $file) { return 0; }
 	else {
