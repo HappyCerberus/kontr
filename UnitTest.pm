@@ -253,6 +253,8 @@ sub log_run_fail
 		{ $self->log($prefix.$Config->{Run}->{fail_signal_segv}."\n"); }
 		elsif ($self->execution->exit_value == 15)
 		{ $self->log($prefix.$Config->{Run}->{fail_signal_term}."\n"); }
+		elsif ($self->execution->exit_value == 25)
+		{ $self->log($prefix.$Config->{Run}->{fail_size}."\n"); }
 		else
 		{ $self->log($prefix.$Config->{Run}->{fail_signal_gen}."\n"); } 
 	}

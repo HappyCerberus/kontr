@@ -10,6 +10,7 @@ use warnings;
 
 use Moose;
 use Moose::Util::TypeConstraints;
+use BSD::Resource;
 
 use Helpers;
 use POSIX;
@@ -97,6 +98,9 @@ sub exec
 			open STDOUT, ">".$self->stdout_path;
 			open STDERR, ">".$self->stderr_path;
 		}
+		
+		# Use setrlimit to limit program output size
+		setrlimit(RLIMIT_FSIZE, $self->limit_output, $self->limit_output);
 
 		# execute the program
 		unshift (@_,$self->cmd);
