@@ -43,7 +43,8 @@ sub remove_lock {
 	my $self = shift;
 	if (not $self->has_lock) { return 0; }
 	my $lock = $self->_lock;
-	system("rm $lock;");
+	`unlink $lock;`;
+	not $self->has_lock;
 }
 
 no Moose;
