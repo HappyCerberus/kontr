@@ -40,7 +40,8 @@ sub _build__corrected {
 	
 	new TimeLock(name => $self->_filename,
 		directory => corrected_dir(),
-		duration => DateTime::Duration->new( minutes => 15 ));
+		duration => DateTime::Duration->new( minutes => 15 ),
+		write => 1);
 }
 
 around BUILDARGS => sub {
