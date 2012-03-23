@@ -11,9 +11,7 @@ use Fcntl;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-subtype 'Directory',
-	as 'Str',
-	where { -d $_; };
+use Types;
 
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 has 'directory' => (is => 'ro', isa => 'Directory', required => 1);

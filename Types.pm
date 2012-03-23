@@ -40,5 +40,9 @@ coerce 'SubmissionModeArr',
 	from 'SubmissionMode',
 	via { [ $_ ] };
 
+subtype 'Directory',
+	as 'Str',
+	where { -d $_; };
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
