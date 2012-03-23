@@ -15,6 +15,7 @@ use Types;
 
 has 'name' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'class' => ( is => 'ro', isa => 'SubmissionClass', required => 1 );
+has 'dir' => ( is => 'ro', isa => 'Directory', required => 1 );
 has 'opened' => ( is => 'ro', isa => 'SubmissionModeArr', lazy_build => 1, coerce => 1, auto_deref => 1);
 
 sub is_opened {
@@ -37,8 +38,7 @@ sub _build_dir {
 
 sub _build_opened {
 	my $self = shift;
-	my $dir = Config::Tiny->new->read('config.ini')->{Submission}->{opened};
-	my @data = $self->_build_dir($dir);
+	my @data = $self->_build_dir($self->dir);
 	my $subtype = 'SubmissionModeStr_'.$self->name.'_'.$self->class;
 	
 	subtype $subtype,
