@@ -39,6 +39,13 @@ sub add_lock {
 	return 1;	
 }
 
+sub obtain_lock {
+	my $self = shift;
+	while (not $self->add_lock()) {
+		sleep(int(rand(10)));
+	}
+}
+
 sub remove_lock {
 	my $self = shift;
 	if (not $self->has_lock) { return 0; }
