@@ -153,7 +153,7 @@ sub _max {
 };
 
 sub _cleanup
-{
+{ #Cleanup only for this name
 	my $self = shift;
 	unless ($self->write) {
 		$self->_max if scalar @_; #If force count of maximum
@@ -180,6 +180,25 @@ sub _cleanup
 		}
 	}
 };
+
+sub cleanup
+{ #Static cleanup - all invalid files in lock directory
+	if (@_ == 2) { shift; }
+	my $prefix = shift;
+	
+	opendir(DIR, $prefix) || die("Cannot open lock directory");
+	my @files = readdir(DIR);
+	closedir(DIR);
+	
+	my @good = grep { find_type_constraint('TimeLockValidFilename')->check($_) } @files;
+	push(@good, ('.', '..'));
+	my @bad = grep { my $m = $_; not scalar grep { $_ eq $m} @good } @files;
+	
+	foreach (@bad) {
+		my $file = $prefix.'/'.$_;
+		`rm -f "$file"`;
+	}
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

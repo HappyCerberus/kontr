@@ -31,11 +31,15 @@ sub get_dir {
 	Config::Tiny->new->read('config.ini')->{Submission}->{submitted};
 }
 
+sub corrected_dir {
+	Config::Tiny->new->read('config.ini')->{Submission}->{corrected};
+}
+
 sub _build__corrected {
 	my $self = shift;
 	
 	new TimeLock(name => $self->_filename,
-		directory => Config::Tiny->new->read('config.ini')->{Submission}->{corrected},
+		directory => corrected_dir(),
 		duration => DateTime::Duration->new( minutes => 15 ));
 }
 
@@ -76,6 +80,14 @@ around get_bad => sub {
 	my $dir = get_dir();
 	
 	map { $dir.'/'.$_ } $self->$orig($dir);
+};
+
+around cleanup => sub {
+	my $orig = shift;
+	my $self = shift;
+	
+	$self->$orig(get_dir());
+	$self->_corrected->cleanup(corrected_dir());
 };
 
 sub corrected {

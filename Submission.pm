@@ -135,5 +135,15 @@ sub get_bad {
 	grep { my $m = $_; not scalar grep { $_ eq $m} @good } @files;
 }
 
+sub cleanup {
+	if (@_ == 2) { shift; }
+	my $prefix = shift;
+	
+	foreach (get_bad($prefix)) {
+		my $file = $prefix.'/'.$_;
+		`rm -f "$file"`;
+	}
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
