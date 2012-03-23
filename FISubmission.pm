@@ -98,6 +98,18 @@ sub corrected {
 	$self->remove();
 }
 
+sub is_corrected {
+	my $self = shift;
+	
+	$self->_corrected->has_lock;
+}
+
+sub until {
+	my $self = shift;
+	
+	$self->_corrected->until;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

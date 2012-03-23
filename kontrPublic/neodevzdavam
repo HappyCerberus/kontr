@@ -6,8 +6,8 @@ use Try::Tiny;
 use utf8;
 use Moose::Util::TypeConstraints;
 use Types;
-use Submission;
-use Homework;
+use FISubmission;
+use FIHomework;
 no utf8;
 
 # required parameters: class homework type
@@ -54,8 +54,8 @@ try {
 		"Kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
 	printf $_;
 } finally {
-	my $h = new Homework(name => $homework, class => $class);
-	my $s = new Submission(user => $info, homework => $h, mode => $type);
+	my $h = new FIHomework(name => $homework, class => $class);
+	my $s = new FISubmission(user => $info, homework => $h, mode => $type);
 	if ($info->is_special())
 	{
 		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
@@ -65,7 +65,7 @@ try {
 		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
 		exit 1; 
 	}
-	if (not $s->file) {
+	if (not $s->is_submitted) {
 		printf "Tento domácí úkol nemáte v tomto režimu odevzdán.\n";
 		exit 1;
 	}
@@ -75,5 +75,8 @@ try {
 	printf "Student patří pod: '".$info->teacher->name."' UČO: '".$info->teacher->uco."' email: '".$info->teacher->email."' unix login: '".$info->teacher->login."'\n"  unless $info->is_special;
 	printf "Pokud je některý z údajů nesprávný, okamžitě kontaktujte správce kontru.\n\n";
 
-	$s->remove();
+	if (not $s->remove()) {
+		printf "Zrušení odevzdání domácího úkolu se nezdařilo, zkuste to prosím znovu a pokud uvidíte znovu stejnou chybu, tak kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
+		printf $_;
+	}
 }

@@ -6,8 +6,8 @@ use Try::Tiny;
 use utf8;
 use Moose::Util::TypeConstraints;
 use Types;
-use Submission;
-use Homework;
+use FISubmission;
+use FIHomework;
 no utf8;
 
 # required parameters: class homework type
@@ -54,8 +54,8 @@ try {
 		"Kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
 	printf $_;
 } finally {
-	my $h = new Homework(name => $homework, class => $class);
-	my $s = new Submission(user => $info, homework => $h, mode => $type);
+	my $h = new FIHomework(name => $homework, class => $class);
+	my $s = new FISubmission(user => $info, homework => $h, mode => $type);
 	if ($info->is_special())
 	{
 		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
@@ -65,9 +65,14 @@ try {
 		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
 		exit 1; 
 	}
-	if ($s->file) {
+	if ($s->is_submitted) {
 		printf "Tento domácí úkol máte již v tomto režimu odevzdán.\n";
 		printf "Pokud již uběhlo více jak 30 minut, tak prosíme kontaktujte správce (toth\@fi.muni.cz) s detaily (především aktuální čas, váš login, domácí úkol a typ odevzdání.";
+		exit 1;
+	}
+	if ($s->is_corrected) {
+		printf "Tento domácí úkol byl v tomto režimu před krátkou dobou vyhodnocen.\n";
+		printf "Další odevzdání bude možné až po ".$s->until.".";
 		exit 1;
 	}
 	if (not $info->is_special() and not $s->can_submit) {
@@ -83,5 +88,8 @@ try {
 	printf "Odevzdání můžete do méně jak 5 minut zrušit pomocí příkazu \"neodevzdavam\" s identickými parametry.\n";
 	printf "Příjemný den a hodně štěstí přeje automatický systém oprav domácích úkolů.\n";
 
-	$s->submit();
+	if (not $s->submit()) {
+		printf "Domácí úkol se nepovedlo odevzdat, kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
+		printf $_;
+	}
 }
