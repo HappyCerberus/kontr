@@ -9,6 +9,7 @@ package FISubmission;
 
 use Moose;
 use Submission;
+use FIHomework;
 use Moose::Util::TypeConstraints;
 use File::Basename;
 use TimeLock;
@@ -88,7 +89,7 @@ around cleanup => sub {
 	my $self = shift;
 	
 	$self->$orig(get_dir());
-	$self->_corrected->cleanup(corrected_dir());
+	TimeLock->cleanup(corrected_dir());
 };
 
 sub corrected {
