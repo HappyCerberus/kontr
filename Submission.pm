@@ -141,6 +141,7 @@ sub cleanup {
 	
 	foreach (get_bad($prefix)) {
 		my $file = $prefix.'/'.$_;
+		print "BAD_SUBMISSION: $_\n";
 		`rm -f "$file"`;
 	}
 }

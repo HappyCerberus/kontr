@@ -66,6 +66,7 @@ around validate => sub {
 	my $orig = shift;
 	my $self = shift;
 	
+	return 0 if $self->_corrected->has_lock;
 	return 0 unless getpwuid((stat($self->_lock->_lock))[4]) eq $self->user->login; #Check login
 	$self->$orig;
 };
@@ -75,7 +76,7 @@ around get_all => sub {
 	my $self = shift;
 	my $dir = get_dir();
 	
-	map { $dir.'/'.$_ } $self->$orig($dir);
+	map { $dir.'/'.$_ } grep { find_type_constraint('FISubmission')->coerce($_)->validate() } $self->$orig($dir);
 };
 
 around get_bad => sub {
@@ -83,7 +84,17 @@ around get_bad => sub {
 	my $self = shift;
 	my $dir = get_dir();
 	
-	map { $dir.'/'.$_ } $self->$orig($dir);
+	opendir(DIR, $dir) || die("Cannot open submission directory");
+	my @files = readdir(DIR);
+	closedir(DIR);
+	
+	my @good = get_all();
+	push(@good, ('.', '..'));
+	
+	my @res = grep { my $m = $_; not scalar grep { basename($_) eq $m} @good } @files;
+	
+	push(@res, $self->$orig($dir));
+	map { $dir.'/'.$_ } @res;
 };
 
 around cleanup => sub {
@@ -92,6 +103,11 @@ around cleanup => sub {
 	
 	$self->$orig(get_dir());
 	TimeLock->cleanup(corrected_dir());
+	
+	foreach (get_bad()) {
+		print "BAD_SUBMISSION: $_\n";
+		`rm -f "$_"`;
+	}
 };
 
 sub corrected {
