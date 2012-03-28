@@ -38,11 +38,13 @@ sub corrected_dir {
 
 sub _build__corrected {
 	my $self = shift;
+	my $user = `whoami`;
+	$user =~ s/\s+$//;
 	
 	new TimeLock(name => $self->_filename,
 		directory => corrected_dir(),
 		duration => DateTime::Duration->new( minutes => 15 ),
-		write => 1);
+		write => (Config::Tiny->new->read('config.ini')->{Global}->{superuser} eq $user) );
 }
 
 around BUILDARGS => sub {
