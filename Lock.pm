@@ -33,6 +33,9 @@ sub add_lock {
 	if (not sysopen $fh, $self->_lock, O_WRONLY|O_EXCL|O_CREAT) {
 		return 0;
 	}
+	if (@_ == 1) {
+		print $fh $_[0];
+	}
 	close($fh);
 	return 1;	
 }
