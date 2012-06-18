@@ -18,9 +18,10 @@ use Try::Tiny;
 
 has 'user' => ( is => 'ro', isa => 'StudentInfo', required => 1 );
 has 'homework' => ( is => 'ro', isa => 'Homework', required => 1 );
-has 'mode' => ( is => 'ro', isa => 'SubmissionMode', required => 1);
+has 'mode' => ( is => 'ro', isa => 'SubmissionMode', required => 1 );
 has 'dir' => ( is => 'ro', isa => 'Directory', required => 1 );
-has '_lock' => ( is => 'ro', isa => 'Lock', lazy_build => 1);
+has '_lock' => ( is => 'ro', isa => 'Lock', lazy_build => 1 );
+has 'config' => ( is => 'ro', isa => 'Config::Tiny', lazy_build => 1 );
 
 subtype 'SubmissionFilename',
 	as 'Str',
@@ -55,7 +56,18 @@ coerce 'Submission',
 
 sub _build__lock {
 	my $self = shift;
+	
 	new Lock( name => $self->_filename, directory => $self->dir);
+}
+
+sub _build_config {
+	my $self = shift;
+	
+	my $r = Config::Tiny->new;
+	if ($self->is_submitted) {
+		return $r->read ($self->dir.'/'.$self->_filename);
+	}
+	return $r;
 }
 
 sub _filename {
@@ -84,7 +96,7 @@ sub submit {
 	my $self = shift;
 	
 	if (not $self->can_submit) { return 0; }
-	$self->_lock->add_lock;
+	$self->_lock->add_lock ($self->config->write_string);
 }
 
 sub remove {
