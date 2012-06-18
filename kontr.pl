@@ -7,10 +7,13 @@ use Mailer;
 use Config::Tiny;
 use strict;
 use warnings;
+use FISubmission;
 
 print "[KONTR] SESSION START\n";
 
-my $session = new Session(@ARGV);
+my $submission = find_type_constraint('FISubmission')->coerce($_);
+my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
+#my $session = new Session(@ARGV);
 
 print "<user>".$session->user->login."\n";
 
