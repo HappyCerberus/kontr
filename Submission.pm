@@ -158,5 +158,18 @@ sub cleanup {
 	}
 }
 
+sub obtain_export {
+	my $self = shift;
+	my $dir = shift;
+	
+	if ($dir eq $self->dir and $self->is_submitted) {
+		return;
+	}
+	
+	my $lock = new Lock( name => $self->_filename, directory => $dir);
+	$lock->obtain_lock($self->config->write_string);
+	return;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
