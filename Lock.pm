@@ -42,8 +42,15 @@ sub add_lock {
 
 sub obtain_lock {
 	my $self = shift;
-	while (not $self->add_lock()) {
-		sleep(int(rand(10)));
+	if (@_ == 1) {
+		while (not $self->add_lock($_[0])) {
+			sleep(int(rand(10)));
+		}
+	}
+	else {
+		while (not $self->add_lock()) {
+			sleep(int(rand(10)));
+		}
 	}
 }
 
