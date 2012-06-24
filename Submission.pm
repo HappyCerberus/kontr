@@ -163,7 +163,7 @@ sub obtain_export {
 	my $dir = shift;
 	
 	if ($dir eq $self->dir and $self->is_submitted) {
-		return;
+		return $self->_lock->_lock;
 	}
 	
 	my $lock = new Lock( name => $self->_filename, directory => $dir);
