@@ -21,7 +21,7 @@ has 'params'	=> ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Str]', default
 
 has 'templates' => ( traits => ['String'], is => 'rw', isa => 'Str', default => sub { my $Config = Config::Tiny->new; $Config = Config::Tiny->read('config.ini'); return $Config->{Email}->{templates}; } );
 
-sub send 
+sub message
 {
 	my $self = shift;
 	my %options;
@@ -53,7 +53,7 @@ sub send
 				);
 	}
 
-	$msg->send;
+	return $msg;
 }
 
 no Moose;

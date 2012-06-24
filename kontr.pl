@@ -36,7 +36,10 @@ $generator->generate($session);
 # Send emails
 my $Config = Config::Tiny->new;
 $Config = Config::Tiny->read('config.ini');
+my $filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
+	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
 
+#Student email
 my $subj;
 if ($session->run_type eq 'student')
 { $subj = $Config->{Global}->{student_subj}; }
@@ -60,38 +63,39 @@ foreach ($session->student_attachments)
 	push @sparam, $_->name;
 	push @sparam, $_->mime;
 }
-$student->send(@sparam);
+$student = $student->message(@sparam);
+$student->print_body(">$filepath/student_email"); #Save student email into file
+$student->send; #Send student email
 
-if ($session->run_type eq 'teacher')
+#Teacher email
+my $teacher = new Mailer(	to => $session->user->teacher->email, 
+				reply => $session->user->email,
+				subject => "[".$session->class."][".$session->task."]".$subj,
+				template => 'full_mail');
+$teacher->set_param(summary => $session->summary_log);
+$teacher->set_param(log => $session->teacher_log->data);
+$teacher->set_param(student => $session->user->name);
+$teacher->set_param(uco => $session->user->uco);
+$teacher->set_param(login => $session->user->login);
+$teacher->set_param(cvicici => $session->user->teacher->name);
+
+my @param;
+foreach ($generator->files)
 {
-	# Send emails
-	my $teacher = new Mailer(	to => $session->user->teacher->email, 
-					reply => $session->user->email,
-					subject => "[".$session->class."][".$session->task."]".$subj,
-					template => 'full_mail');
-	$teacher->set_param(summary => $session->summary_log);
-	$teacher->set_param(log => $session->teacher_log->data);
-	$teacher->set_param(student => $session->user->name);
-	$teacher->set_param(uco => $session->user->uco);
-	$teacher->set_param(login => $session->user->login);
-	$teacher->set_param(cvicici => $session->user->teacher->name);
-
-	my @param;
-	foreach ($generator->files)
-	{
-		my $short = `basename $_`;
-		chomp $short;
-		push @param, $_;
-		push @param, $short;
-		push @param, 'text/html';
-	}
-	foreach ($session->teacher_attachments)
-	{
-		push @param, $_->filename;
-		push @param, $_->name;
-		push @param, $_->mime;
-	}
-	$teacher->send(@param);
+	my $short = `basename $_`;
+	chomp $short;
+	push @param, $_;
+	push @param, $short;
+	push @param, 'text/html';
 }
+foreach ($session->teacher_attachments)
+{
+	push @param, $_->filename;
+	push @param, $_->name;
+	push @param, $_->mime;
+}
+$teacher = $teacher->message(@param);
+$student->print_body(">$filepath/teacher_email"); #Save teacher email into file
+if ($session->run_type eq 'teacher') {	$teacher->send; } #But send it only if needed
 
 print "[KONTR] SESSION DONE\n";				
