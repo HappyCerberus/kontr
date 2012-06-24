@@ -13,9 +13,16 @@ print "[KONTR] SESSION START\n";
 
 my $submission = find_type_constraint('FISubmission')->coerce($_);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
-#my $session = new Session(@ARGV);
 
-print "<user>".$session->user->login."\n";
+#Different data source
+if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{source}) {
+	my $source = $submission->config->{SVN}->{source};
+	print "<user>".$session->user->login." with source from ".$source."\n";
+	$session->user(new StudentInfo(login => $source, class => $session->{'class'}));
+}
+else {
+	print "<user>".$session->user->login."\n";
+}
 
 # Fetch data from SVN
 my $svn = new SVN();

@@ -38,6 +38,11 @@ sub start { #Asynchronous kontr start
 	
 	$submission->toBeCorrected(); #Correction lock
 	
+	#Different data source
+	if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{source}) {
+		$login = $submission->config->{SVN}->{source};
+	}
+	
 	my $svnlock = Lock->new(name => "svnlock_$login", directory => lock_dir());
 	$svnlock->obtain_lock(); #SVN lock
 	
