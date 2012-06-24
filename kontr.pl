@@ -14,11 +14,13 @@ print "[KONTR] SESSION START\n";
 my $submission = find_type_constraint('FISubmission')->coerce($_);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
 
+my $different_submitter = 0;
 #Different data source
 if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{source}) {
-	my $source = $submission->config->{SVN}->{source};
-	print "<user>".$session->user->login." with source from ".$source."\n";
-	$session->user(new StudentInfo(login => $source, class => $session->{'class'}));
+	my $source_user = $submission->config->{SVN}->{source};
+	print "<user>".$session->user->login." with source from ".$source_user."\n";
+	$different_submitter = $session->user->login;
+	$session->user(new StudentInfo(login => $source_user, class => $session->{'class'}));
 }
 else {
 	print "<user>".$session->user->login."\n";
@@ -52,7 +54,7 @@ if ($session->run_type eq 'student')
 { $subj = $Config->{Global}->{student_subj}; }
 else { $subj = $Config->{Global}->{result_subj}; }
  
-my $student = new Mailer(	to => $session->user->email, 
+my $student = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->email), 
 				reply => $session->user->teacher->email,
 				subject => "[".$session->class."][".$session->task."]".$subj,
 				template => 'full_mail');
@@ -75,7 +77,7 @@ $student->print_body(">$filepath/student_email"); #Save student email into file
 $student->send; #Send student email
 
 #Teacher email
-my $teacher = new Mailer(	to => $session->user->teacher->email, 
+my $teacher = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->teacher->email), 
 				reply => $session->user->email,
 				subject => "[".$session->class."][".$session->task."]".$subj,
 				template => 'full_mail');
@@ -103,6 +105,6 @@ foreach ($session->teacher_attachments)
 }
 $teacher = $teacher->message(@param);
 $student->print_body(">$filepath/teacher_email"); #Save teacher email into file
-if ($session->run_type eq 'teacher') {	$teacher->send; } #But send it only if needed
+if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; } #But send it only if needed
 
 print "[KONTR] SESSION DONE\n";				
