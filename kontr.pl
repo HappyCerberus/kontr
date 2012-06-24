@@ -7,11 +7,11 @@ use Mailer;
 use Config::Tiny;
 use strict;
 use warnings;
-use FISubmission;
+use FISubmissionInternal;
 
 print "[KONTR] SESSION START\n";
 
-my $submission = find_type_constraint('FISubmission')->coerce($ARGV[0]);
+my $submission = find_type_constraint('FISubmissionInternal')->coerce($ARGV[0]);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
 
 my $different_submitter = 0;
