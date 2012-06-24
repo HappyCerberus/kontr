@@ -68,6 +68,9 @@ around validate => sub {
 	
 	return 0 if $self->_corrected->has_lock;
 	return 0 unless getpwuid((stat($self->_lock->_lock))[4]) eq $self->user->login; #Check login
+	if (not $self->user->is_special) {
+		return 0 unless $self->config->write_string eq '';
+	}
 	$self->$orig;
 };
 
