@@ -20,13 +20,7 @@ has '_corrected' => ( is => 'ro', isa => 'TimeLock', lazy_build => 1 );
 
 coerce 'FISubmission',
 	from 'SubmissionFilename',
-	via {
-		my @data = split ('_', basename($_));
-		
-		new FISubmission(user => new StudentInfo(login => $data[2], class => $data[0]),
-			homework => new FIHomework(name => $data[3], class => $data[0]),
-			mode => $data[1]);	
-	};
+	via { Submission->coerce_method($_); };
 
 sub get_dir {
 	Config::Tiny->new->read('config.ini')->{Submission}->{submitted};

@@ -44,15 +44,17 @@ subtype 'SubmissionFilename',
 		}
 	};
 
+sub coerce_method {
+	my @data = split ('_', basename($_));
+
+	new Submission(user => new StudentInfo(login => $data[2], class => $data[0]),
+		homework => new Homework(name => $data[3], class => $data[0]),
+		mode => $data[1]);	
+}
+
 coerce 'Submission',
 	from 'SubmissionFilename',
-	via {
-		my @data = split ('_', basename($_));
-		
-		new Submission(user => new StudentInfo(login => $data[2], class => $data[0]),
-			homework => new Homework(name => $data[3], class => $data[0]),
-			mode => $data[1]);	
-	};
+	via { coerce_method($_); };
 
 sub _build__lock {
 	my $self = shift;
