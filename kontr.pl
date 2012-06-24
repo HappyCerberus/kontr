@@ -17,8 +17,12 @@ my $session = new Session($submission->user->login, $submission->homework->class
 
 print "<user>".$session->user->login."\n";
 
-# Fetch current SVN
+# Fetch data from SVN
 my $svn = new SVN();
+#Add revision if needed
+if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{revision}) {
+	$svn->revision($submission->config->{SVN}->{revision});
+}
 $svn->fetch($session);
 exit 1 unless $svn->result eq 'success';
 
