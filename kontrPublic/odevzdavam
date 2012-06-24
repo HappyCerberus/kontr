@@ -10,8 +10,8 @@ use FISubmission;
 use FIHomework;
 no utf8;
 
-# required parameters: class homework type
-if (scalar @ARGV != 3)
+# required parameters: class homework type (source) (revision)
+if (scalar @ARGV != 3 and scalar @ARGV != 4)
 {
 	printf	"Tento skript vyžaduje přesně tři parametry.\n".
 		"\t* předmět (pb071 pro cecko, pb161 pro cpp)\n".
@@ -20,6 +20,8 @@ if (scalar @ARGV != 3)
 
 	exit 1;
 }
+
+chdir "/home/xtoth1/kontrPublic";
 
 my $class = $ARGV[0];
 my $homework = $ARGV[1];
@@ -60,10 +62,9 @@ try {
 	{
 		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
 	}
-	elsif (not $h->is_opened)
+	elsif (not $h->is_opened($type))
 	{
-		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
-		exit 1; 
+		die "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
 	}
 	if ($s->is_submitted) {
 		printf "Tento domácí úkol máte již v tomto režimu odevzdán.\n";
@@ -72,12 +73,16 @@ try {
 	}
 	if ($s->is_corrected) {
 		printf "Tento domácí úkol byl v tomto režimu před krátkou dobou vyhodnocen.\n";
-		printf "Další odevzdání bude možné až po ".$s->until.".";
+		printf "Další odevzdání bude možné až po ".$s->until." UTC.\n";
 		exit 1;
 	}
 	if (not $info->is_special() and not $s->can_submit) {
 		printf "Domácí úkol nemůžete odevzdat.\n";
 		exit 1;
+	}
+	if ($info->is_special and scalar @ARGV == 4) {
+		printf "Odevzdání za studenta ".$ARGV[3]."\n";
+		$s->config->{SVN} = { source => $ARGV[3] };
 	}
 
 	printf "Probíhá odevzdání domácího úkolu \"$homework\" v režimu \"$type\".\n\n";
@@ -89,7 +94,7 @@ try {
 	printf "Příjemný den a hodně štěstí přeje automatický systém oprav domácích úkolů.\n";
 
 	if (not $s->submit()) {
-		printf "Domácí úkol se nepovedlo odevzdat, kontaktujte prosím správce (toth\@fi.muni.cz) a přiložte následující text:\n\n\n";
-		printf $_;
+		printf "Domácí úkol se nepovedlo odevzdat; zkontrolujte, jestli jste nepřekročili vlastní kvótu. Pokud ne, tak kontaktujte, prosím, správce (toth\@fi.muni.cz) a přiložte následující údaje:\n\n\n";
+		printf join (' ', @ARGV);
 	}
 }
