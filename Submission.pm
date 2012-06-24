@@ -168,7 +168,7 @@ sub obtain_export {
 	
 	my $lock = new Lock( name => $self->_filename, directory => $dir);
 	$lock->obtain_lock($self->config->write_string);
-	return;
+	return $lock->_lock;
 }
 
 no Moose;
