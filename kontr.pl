@@ -11,7 +11,7 @@ use FISubmission;
 
 print "[KONTR] SESSION START\n";
 
-my $submission = find_type_constraint('FISubmission')->coerce($_);
+my $submission = find_type_constraint('FISubmission')->coerce($ARGV[0]);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
 
 my $different_submitter = 0;
