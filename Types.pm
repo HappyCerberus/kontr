@@ -8,6 +8,7 @@
 package Types;
 use Moose;
 use Moose::Util::TypeConstraints;
+use Config::Tiny;
 
 sub _config_helper {
 	my $name = shift;

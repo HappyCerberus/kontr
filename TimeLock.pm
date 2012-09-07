@@ -10,6 +10,7 @@ package TimeLock;
 use Moose;
 use Moose::Util::TypeConstraints;
 use DateTime;
+class_type 'DateTime';
 use DateTime::Format::Strptime;
 
 use Lock;
