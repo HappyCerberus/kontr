@@ -1,4 +1,4 @@
-#!/packages/run/links/bin/perl -I/home/xtoth1/kontrPublic
+#!/packages/run/links/bin/perl -I/home/xbrukner/kontr/kontr/
 
 
 use StudentInfo;
@@ -20,6 +20,8 @@ if (scalar @ARGV != 3)
 
 	exit 1;
 }
+
+chdir "/home/xbrukner/kontr/kontr/kontrPublic";
 
 my $class = $ARGV[0];
 my $homework = $ARGV[1];
