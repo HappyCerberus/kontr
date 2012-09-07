@@ -50,7 +50,7 @@ sub start { #Asynchronous kontr start
 	#my $type = $submission->mode;
 	
 	if ($class eq 'FISubmission') {
-		$submission->toBeCorrected(); #Correction lock
+		$submission->corrected(); #Correction lock
 		$filename = $submission->obtain_export(FISubmissionInternal->get_dir()); #Obtain export file
 	}
 	
@@ -68,9 +68,6 @@ sub start { #Asynchronous kontr start
 		$cmd .= " &>>$kontrLogFile";
 	}
 	system($cmd);
-	
-	#Delete submission file
-	$submission->corrected(); 
 	
 	#Remove SVN lock
 	$svnlock->remove_lock();

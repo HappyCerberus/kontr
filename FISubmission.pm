@@ -107,15 +107,10 @@ around cleanup => sub {
 	}
 };
 
-sub toBeCorrected {
-	my $self = shift;
-	
-	$self->_corrected->add_lock() unless $self->user->is_special;
-}
-
 sub corrected {
 	my $self = shift;
 	
+	$self->_corrected->add_lock() unless $self->user->is_special;
 	$self->remove();
 }
 

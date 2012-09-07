@@ -38,10 +38,10 @@ around get_all => sub {
 	map { $dir.'/'.$_ } $self->$orig($dir);
 };
 
-sub corrected {
+sub runType {
 	my $self = shift;
 	
-	$self->remove();
+	return ($self->mode eq 'nanecisto' ? 'student' : 'teacher');
 }
 
 no Moose;

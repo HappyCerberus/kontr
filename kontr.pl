@@ -120,4 +120,5 @@ close $teacher_email;
 #But send it only if needed
 if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; }
 
-print "[KONTR] SESSION DONE\n";	
+print "[KONTR] SESSION DONE\n";
+$submission->remove();
