@@ -34,8 +34,8 @@ sub generate
 	{
 		my $html = `basename $_`;
 		chomp $html;
-		$html = $work_path."/".$html.".html";	
-		`vim -u ~/.vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
+		$html = $work_path."/".$html.".html";
+		`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
 		$self->add_file($html);
 	}
 }
