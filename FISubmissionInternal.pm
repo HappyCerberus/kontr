@@ -9,13 +9,14 @@ package FISubmissionInternal;
 
 use Moose;
 use Submission;
+use FIHomework;
 use Moose::Util::TypeConstraints;
 
 extends 'Submission';
 
 coerce 'FISubmissionInternal',
 	from 'SubmissionFilename',
-	via { Submission->coerce_method($_); };
+	via { Submission->coerce_method($_, 'FISubmissionInternal', 'StudentInfo', 'FIHomework'); };
 
 
 sub get_dir {
@@ -36,6 +37,12 @@ around get_all => sub {
 	
 	map { $dir.'/'.$_ } $self->$orig($dir);
 };
+
+sub corrected {
+	my $self = shift;
+	
+	$self->remove();
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
