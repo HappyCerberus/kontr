@@ -11,6 +11,7 @@ sub lock_dir {
 }
 
 my $kontrLogFile = Config::Tiny->new->read('config.ini')->{Global}->{log_file};
+my $basePath = Config::Tiny->new->read('config.ini')->{Global}->{base_path};
 my $debug = 0;
 my $lock = Lock->new(name => 'master_lock', directory => lock_dir());
 
@@ -63,7 +64,7 @@ sub start { #Asynchronous kontr start
 	$svnlock->obtain_lock(); #SVN lock
 	
 	#my $cmd="cd /home/xtoth1/kontrNG;/packages/run/links/bin/perl kontr.pl ".$login." ".$class." ".$task." ".$type." &>>/home/xtoth1/kontrNG/log2";
-	my $cmd="/packages/run/links/bin/perl kontr.pl ".$filename;
+	my $cmd="cd $basePath; ./kontr.pl ".$filename;
 	if ($kontrLogFile) {
 		$cmd .= " &>>$kontrLogFile";
 	}
