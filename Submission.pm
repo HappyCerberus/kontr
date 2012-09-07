@@ -45,11 +45,25 @@ subtype 'SubmissionFilename',
 	};
 
 sub coerce_method {
-	my @data = split ('_', basename($_));
+	my $self = shift;
+	my $input = shift;
+	
+	my $submission = 'Submission';
+	my $studentInfo = 'StudentInfo';
+	my $homework = 'Homework';
+	
+	if (@_) {
+		$submission = shift;
+		$studentInfo = shift;
+		$homework = shift;
+	}
+	
+	my @data = split ('_', basename($input));
+	
+	my $user = new $studentInfo(login => $data[2], class => $data[0]);
+	my $hw = new $homework(name => $data[3], class => $data[0], dir => dirname($input));
 
-	new Submission(user => new StudentInfo(login => $data[2], class => $data[0]),
-		homework => new Homework(name => $data[3], class => $data[0]),
-		mode => $data[1]);	
+	new $submission(user => $user, homework => $hw, mode => $data[1]);
 }
 
 coerce 'Submission',
