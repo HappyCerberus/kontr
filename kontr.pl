@@ -8,11 +8,12 @@ use Config::Tiny;
 use strict;
 use warnings;
 use FISubmissionInternal;
+use Moose::Util::TypeConstraints;
 
 print "[KONTR] SESSION START\n";
 
 my $submission = find_type_constraint('FISubmissionInternal')->coerce($ARGV[0]);
-my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->mode);
+my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->runType);
 
 my $different_submitter = 0;
 #Different data source
@@ -73,8 +74,14 @@ foreach ($session->student_attachments)
 	push @sparam, $_->mime;
 }
 $student = $student->message(@sparam);
-$student->print_body(">$filepath/student_email"); #Save student email into file
-$student->send; #Send student email
+
+#Save student email into file
+open my $student_email, ">$filepath/student_email";
+$student->print_body($student_email); 
+close $student_email;
+
+#Send student email
+$student->send;
 
 #Teacher email
 my $teacher = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->teacher->email), 
@@ -104,7 +111,13 @@ foreach ($session->teacher_attachments)
 	push @param, $_->mime;
 }
 $teacher = $teacher->message(@param);
-$student->print_body(">$filepath/teacher_email"); #Save teacher email into file
-if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; } #But send it only if needed
 
-print "[KONTR] SESSION DONE\n";				
+#Save teacher email into file
+open my $teacher_email, ">$filepath/teacher_email";
+$teacher->print_body($teacher_email); 
+close $teacher_email;
+
+#But send it only if needed
+if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; }
+
+print "[KONTR] SESSION DONE\n";	
