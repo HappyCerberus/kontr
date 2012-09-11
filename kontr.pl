@@ -128,7 +128,7 @@ if ($report_log) {
 		$submission->homework->class.' '.$submission->homework->name.' '.$submission->runType.' '.
 		$different_submitter.': '.join(' ', $session->get_tags).'; '.
 		join(' ', sub { my %points = $session->get_points(); map { $_.'='.$points{$_} } keys %points; }->() ).
-		' # '.$session->get_summary;
+		' # '.$session->get_summary."\n";
 	open my $report_file, ">$filepath/report";
 	print $report_file $report;
 	close $report_file;
