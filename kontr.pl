@@ -129,9 +129,12 @@ if ($report_log) {
 		$different_submitter.': '.join(' ', $session->get_tags).'; '.
 		join(' ', sub { my %points = $session->get_points(); map { $_.'='.$points{$_} } keys %points; }->() ).
 		' # '.$session->get_summary;
+	open my $report_file, ">$filepath/report";
+	print $report_file $report;
+	close $report_file;
 	my $lock = Lock->new(name => 'report_lock', directory => '.');
 	$lock->obtain_lock;
-	open my $report_file, ">>$report_log";
+	open $report_file, ">>$report_log";
 	print $report_file $report;
 	close $report_file;
 	$lock->remove_lock;
