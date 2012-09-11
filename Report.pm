@@ -17,7 +17,7 @@ use Moose::Util::TypeConstraints;
 has 'master' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'unit' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'subtest' => ( is => 'rw', isa => 'Str', predicate => 'has_subtest' );
-has 'tags' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { addTag => 'push', allTags => 'elements' } );
+has 'tags' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { addTag => 'push', allTags => 'elements', hasTag => 'grep' } );
 has 'points' => ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Num]', default => sub { {} }, handles => { addPoints => 'set', allPoints => 'kv' } );
 
 sub summary {
@@ -29,11 +29,9 @@ sub summary {
 }
 
 sub sumPoints {
-	my %res;
+	my %res = ();
 	my $data = shift;
 		
-	use Data::Dumper;
-	
 	foreach my $report ( @$data ) {
 		foreach ( $report->allPoints ) {
 			if (exists $res{$_->[0]} ) { $res{$_->[0]} += $_->[1]; }
@@ -41,6 +39,13 @@ sub sumPoints {
 		}
 	}
 	return %res;
+}
+
+sub sumTags {
+	my $data = shift;
+	
+	use List::MoreUtils qw(uniq);
+	uniq( map { $_->allTags } @$data );
 }
 
 no Moose;

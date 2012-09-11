@@ -14,6 +14,7 @@ use Log::Message::Simple;
 use Config::Tiny;
 use POSIX;
 use Attachment;
+use Report;
 
 use warnings;
 use strict;
@@ -41,6 +42,8 @@ has 'summary_log' => ( traits => ['String'],  is => 'rw', isa => 'Str', default 
 
 has 'attach_teacher' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Attachment]', default => sub { [] }, handles => { add_teacher_attach => 'push', teacher_attach_count => 'count', get_teacher_attach => 'get', teacher_attachments => 'elements' } );
 has 'attach_student' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Attachment]', default => sub { [] }, handles => { add_student_attach => 'push', student_attach_count => 'count', get_student_attach => 'get', student_attachments => 'elements' } );
+
+has 'reports' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Report]', default => sub { [] }, handles => { all_reports => 'elements', new_report => 'push' } );
 
 # user, class, type
 sub BUILDARGS
@@ -106,6 +109,45 @@ sub process
 	}
 
 	post_test();
+}
+
+sub has_tag
+{
+	my $self = shift;
+	my $tag = shift;
+	
+	return scalar grep { $_->hasTag( sub { $_ eq $tag} ) } $self->all_reports;
+}
+
+sub get_points
+{
+	my $self = shift;
+	
+	my %points = Report::sumPoints([$self->all_reports]);
+	
+	if (@_) {
+		my $key = shift;
+		
+		if (exists $points{$key}) {
+			return $points{$key};
+		}
+		return 0;
+	}
+	return %points;
+}
+
+sub get_tags
+{
+	my $self = shift;
+	
+	Report::sumTags([$self->all_reports]);
+}
+
+sub get_summary
+{
+	my $self = shift;
+	
+	join(' # ', map { $_->summary } $self->all_reports);
 }
 
 no Moose;

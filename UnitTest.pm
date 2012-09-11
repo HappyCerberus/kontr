@@ -18,6 +18,7 @@ use Run;
 use Analysis;
 use Diff;
 use Valgrind;
+use Report;
 
 has 'name' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
 
@@ -28,6 +29,8 @@ has 'compiled_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]
 has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_student_file => 'push', staged_student_files => 'elements' } );
 
 has 'compiled_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_student_file => 'push', staged_compiled_student_files => 'elements', compiled_student_files_string => 'join' } );
+
+has 'report' => ( is => 'rw', isa => 'Report', lazy_build => 1, handles => { add_tag => 'addTag', add_points => 'addPoints' } );
 
 has 'master' => ( is => 'rw', isa => 'MasterTest' );
 has 'session' => ( is => 'rw', isa => 'Session' );
@@ -259,6 +262,31 @@ sub log_run_fail
 		{ $self->log($prefix.$Config->{Run}->{fail_signal_gen}."\n"); } 
 	}
 	else { return; }
+}
+
+sub _build_report {
+	my $self = shift;
+	
+	my $res = new Report(master => $self->master->name, unit => $self->name);
+	$self->session->new_report($res);
+	return $res;
+}
+
+sub log_tag {
+	my $self = shift;
+	my $tag = shift;
+	
+	$self->add_tag($tag);
+	$self->log(@_);
+}
+
+sub subtest {
+	my $self = shift;
+	my $name = shift;
+	
+	my $res = new Report(master => $self->master->name, unit => $self->name, subtest => $name);
+	$self->session->new_report($res);
+	$self->report($res);
 }
 
 no Moose;

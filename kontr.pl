@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/packages/run/links/bin/perl
 
 use Session;
 use SVN;
@@ -8,6 +8,7 @@ use Config::Tiny;
 use strict;
 use warnings;
 use FISubmissionInternal;
+use Lock;
 use Moose::Util::TypeConstraints;
 
 print "[KONTR] SESSION START\n";
@@ -119,6 +120,22 @@ close $teacher_email;
 
 #But send it only if needed
 if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; }
+
+#Log output from reporter
+my $report_log = Config::Tiny->new->read('config.ini')->{Global}->{report_log};
+if ($report_log) {
+	my $report = $session->timestamp.' '.$submission->user->login.' '.$svn->revision.' '.
+		$submission->homework->class.' '.$submission->homework->name.' '.$submission->runType.' '.
+		$different_submitter.': '.join(' ', $session->get_tags).'; '.
+		join(' ', sub { my %points = $session->get_points(); map { $_.'='.$points{$_} } keys %points; }->() ).
+		' # '.$session->get_summary;
+	my $lock = Lock->new(name => 'report_lock', directory => '.');
+	$lock->obtain_lock;
+	open my $report_file, ">>$report_log";
+	print $report_file $report;
+	close $report_file;
+	$lock->remove_lock;
+}
 
 print "[KONTR] SESSION DONE\n";
 $submission->remove();
