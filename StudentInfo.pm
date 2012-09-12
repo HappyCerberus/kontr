@@ -35,7 +35,7 @@ sub read_info
 	my $login = shift;
 	my $class = shift;
 
-	my @lines = grep {/^$login/} map {read_file($_)} glob($self->teachers_file);
+	my @lines = grep {/^$login,/} map {read_file($_)} glob($self->teachers_file);
 	die "Multiple entries for user \"$login\" in teacher mapping file" unless scalar @lines <= 1;
 	if (scalar @lines == 1) # teacher match
 	{
@@ -53,7 +53,7 @@ sub read_info
 	}
 	else
 	{
-		@lines = grep {/^$login/ && /$class/} map {read_file($_)} glob($self->students_file);
+		@lines = grep {/^$login,/ && /$class/} map {read_file($_)} glob($self->students_file);
 		die "User \"$login\" not present in students mapping file\"".$self->students_file."\"" unless scalar @lines >= 1;
 		die "Multiple entries for user \"$login\" in students mapping file" unless scalar @lines <= 1;
 
@@ -69,7 +69,7 @@ sub read_info
 		$self->name($values[4]);
 
 		# read the teacher info now
-		@lines = grep {/^$teacher/} map {read_file($_)} glob($self->teachers_file);
+		@lines = grep {/^$teacher,/} map {read_file($_)} glob($self->teachers_file);
 		die "User \"$teacher\" not present in teacher mapping file" unless scalar @lines >= 1;
 		die "Multiple entries for user \"$teacher\" in teacher mapping file" unless scalar @lines <= 1;
 		

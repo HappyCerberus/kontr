@@ -44,14 +44,14 @@ sub compile
 
 	$cmd = $comp_flags." ".$cmd." -o ".$test->name;
 	
-	my $compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, limit_runtime => '120');
+	my $compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, limit_runtime => '120', limit_output => 1024*1024*1024);
 	$compile->exec(split(' ',$cmd." -Werror"));
 	if ($compile->failure || $compile->exit_value != 0)
 	{
 		$has_warnings = 1; # warnings or errors present
 	}	
 	
-	$compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, output_path => $test->work_path."/compilation", limit_runtime => 120);
+	$compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, output_path => $test->work_path."/compilation", limit_runtime => 120, limit_output => 1024*1024*1024);
 	$compile->exec(split(' ',$cmd));
 	if ($compile->failure || $compile->exit_value != 0)
 	{

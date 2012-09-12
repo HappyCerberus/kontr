@@ -54,7 +54,7 @@ function invalid {
 
 function leaks {
 	local tst="`cat $FILE | grep -i 'definitely lost:' | wc -l`"
-	local output=(`cat $FILE | grep -i 'definitely lost:' | sed 's/^.*lost: \([0-9]\+\) bytes in \([0-9]\+\) blocks.*$/\\2\n\\1/'`)
+	local output=(`cat $FILE | grep -i 'definitely lost:' | sed 's/^.*lost: \([0-9,]\+\) bytes in \([0-9,]\+\) blocks.*$/\\2\n\\1/'`)
 	if [ $tst -eq 0 ]; then
 		echo "LEAKS: 0 0" >&1
 		echo "No memory leaks" >&2
