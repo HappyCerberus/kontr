@@ -1,6 +1,6 @@
 # this file is specific to aisa.fi.muni.cz
 
-files="config.ini Helpers.pm StudentInfo.pm UserInfo.pm neodevzdavam odevzdavam"
+files="config.ini Helpers.pm StudentInfo.pm UserInfo.pm Types.pm FISubmission.pm Submission.pm FIHomework.pm Homework.pm TimeLock.pm Lock.pm neodevzdavam odevzdavam"
 pubpth=/home/xtoth1/kontrPublic/
 srcpth=/home/xtoth1/kontrNG/
 
@@ -20,3 +20,6 @@ for f in $files; do
 done
 
 mkdir -p $pubpth/otevrene
+mkdir -p $pubpth/otevrene/pripravene
+mkdir -p $pubpth/odevzdani
+mkdir -p $pubpth/opravene
