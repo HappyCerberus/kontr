@@ -50,14 +50,15 @@ sub start { #Asynchronous kontr start
 	#my $task = $submission->homework->name;
 	#my $type = $submission->mode;
 	
-	if ($class eq 'FISubmission') {
-		$submission->corrected(); #Correction lock
-		$filename = $submission->obtain_export(FISubmissionInternal->get_dir()); #Obtain export file
-	}
-	
 	#Different data source
 	if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{source}) {
 		$login = $submission->config->{SVN}->{source};
+	}
+	
+	if ($class eq 'FISubmission') {
+		$submission->corrected(); #Correction lock
+		$filename = $submission->obtain_export(FISubmissionInternal->get_dir()); #Obtain export file
+		$submission = find_type_constraint('FISubmissionInternal')->coerce($filename);
 	}
 	
 	my $svnlock = Lock->new(name => "svnlock_$login", directory => lock_dir());
@@ -69,6 +70,9 @@ sub start { #Asynchronous kontr start
 		$cmd .= " &>>$kontrLogFile";
 	}
 	system($cmd);
+	
+	#Remove internal submission
+	$submission->remove();
 	
 	#Remove SVN lock
 	$svnlock->remove_lock();

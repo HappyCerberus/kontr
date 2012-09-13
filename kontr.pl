@@ -141,4 +141,3 @@ if ($report_log) {
 }
 
 print "[KONTR] SESSION DONE\n";
-$submission->remove();
