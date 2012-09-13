@@ -52,7 +52,7 @@ sub _handle_error {
 		$mail->set_param(repo => $self->url);
 	}
 	
-	$mail->send();
+	$mail->message()->send();
 	return 1;
 }
 
