@@ -80,6 +80,7 @@ sub _fetch_dir {
 sub _fetch_file {
 	my $self = shift;
 	my $file = shift;
+	my $optional = shift;
 	my $rev = $self->revision;
 	
 	my $prev = dirname($file);
@@ -101,8 +102,10 @@ sub _fetch_file {
 	
 	if (-f $file) { return 0; }
 	else {
-		$self->result('missing_files');
-		$self->missing_files($self->missing_files.$name."\n");
+		if (!$optional) {
+			$self->result('missing_files');
+			$self->missing_files($self->missing_files.$name."\n");
+		}
 		return 2;
 	}
 }
@@ -137,13 +140,29 @@ sub fetch
 	}
 
 	$session->repo_path($path);
-	my @required = map { my $s = $path.'/'.$session->task.'/'.$_; $s =~ s/\s+$//; $s; } 
-		read_file($Config->{Tests}->{files_path}."/".$session->class."/".$session->task."/required_files");
-		
+	my $prefix = $path.'/'.$session->task.'/';
+	my @files = read_file($Config->{Tests}->{files_path}."/".$session->class."/".$session->task."/required_files");
+	my @required = map { my $s = $prefix.$_; $s =~ s/\s+$//; $s; } (grep /^[^\?]/, @files);
+	my @optional = map { my $s = $prefix.substr($_, 1); $s =~ s/\s+$//; $s; } (grep /^\?/, @files);
+
 	for my $file (@required) {
-		if ($self->_fetch_file($file) == 1) { #If you should stop immediately (cant_update)
+		my $res = $self->_fetch_file($file);
+		if ($res == 1) { #If you should stop immediately (cant_update)
 			$self->_handle_error($session, $Config);
 			return;
+		}
+		elsif ($res == 0) {
+			$session->add_available_file(substr $file, length $prefix);
+		}
+	}
+	for my $file (@optional) {
+		my $res = $self->_fetch_file($file, 1);
+		if ($res == 1) { #If you should stop immediately (cant_update)
+			$self->_handle_error($session, $Config);
+			return;
+		}
+		elsif ($res == 0) { #File available
+			$session->add_available_file(substr $file, length $prefix);
 		}
 	}
 	$self->_handle_error($session, $Config); #If there are missing files, report them

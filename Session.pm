@@ -32,7 +32,7 @@ has 'run_type' => ( is => 'rw', isa => 'RunType', default => 'student' );
 
 has 'masters' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { register_master => 'push', masters_count => 'count', get_master => 'get' } );
 
-has 'required_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] } );
+has 'available_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { available_file => 'grep', add_available_file => 'push', all_available_files => 'elements' } );
 has 'repo_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 
 has 'user_log' => ( is => 'rw', isa => 'Log', default => sub { return new Log(); } );
