@@ -10,6 +10,10 @@ sub lock_dir {
 	Config::Tiny->new->read('config.ini')->{Tests}->{stage_path}
 }
 
+sub run_new {
+	threads->list(threads::running) < 5;
+}
+
 my $kontrLogFile = Config::Tiny->new->read('config.ini')->{Global}->{log_file};
 my $basePath = Config::Tiny->new->read('config.ini')->{Global}->{base_path};
 my $debug = 0;
@@ -23,6 +27,9 @@ my @threads; #All threads
 if ($debug) { print "Internal\n"; }
 foreach (FISubmissionInternal->get_all()) { #Start threads from submissions that are already in internal directory
 	if ($debug) { print $_."\n"; }
+	while (not run_new()) {
+		sleep (1);
+	}
 	my $t = threads->new(\&start, ($_, 'FISubmissionInternal') );
 	push @threads, $t;
 }
@@ -30,6 +37,9 @@ foreach (FISubmissionInternal->get_all()) { #Start threads from submissions that
 if ($debug) { print "Public\n"; }
 foreach (FISubmission->get_all()) { #Start threads from public submissions
 	if ($debug) { print $_."\n"; }
+	while (not run_new()) {
+		sleep (1);
+	}
 	my $t = threads->new(\&start, ($_, 'FISubmission') );
 	push @threads, $t;
 }
