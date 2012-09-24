@@ -126,7 +126,7 @@ my $report_log = Config::Tiny->new->read('config.ini')->{Global}->{report_log};
 if ($report_log) {
 	my $report = $session->timestamp.' '.$submission->user->login.' '.$svn->revision.' '.
 		$submission->homework->class.' '.$submission->homework->name.' '.$submission->runType.' '.
-		$different_submitter.': '.join(' ', $session->get_tags).'; '.
+		($different_submitter ? $session->user->login : "0").': '.join(' ', $session->get_tags).'; '.
 		join(' ', sub { my %points = $session->get_points(); map { $_.'='.$points{$_} } keys %points; }->() ).
 		' # '.$session->get_summary."\n";
 	open my $report_file, ">$filepath/report";
