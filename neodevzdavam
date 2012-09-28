@@ -62,7 +62,7 @@ try {
 	{
 		printf "Detekován speciální uživatel. Test otevřeného úkolu a zpoždění při opravě přeskočeno.\n\n"; 
 	}
-	elsif (not $h->is_opened)
+	elsif (not $h->is_opened($type))
 	{
 		printf "Odevzdávání domácího úkolu \"$homework\" v režimu \"$type\" zatím není otevřeno studentům.\n";
 		exit 1; 
