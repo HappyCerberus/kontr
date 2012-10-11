@@ -43,6 +43,7 @@ has 'teacher_log' => ( is => 'rw', isa => 'Log' );
 
 has 'compilation' => ( is => 'rw', isa => 'Compiler' );
 has 'extra_compiler_flags' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'compilation_log_errors' => ( is => 'rw', isa => 'Bool', default => 1);
 
 has 'execution' => ( is => 'rw', isa => 'Exec' );
 has 'analysis' => ( is => 'rw', isa => 'Analysis' );
@@ -63,20 +64,26 @@ sub compile
 	$self->compilation(new Compiler());
 	$self->compilation->compile($self);
 
+	my $log_to = 'both';
+	if (not $self->compilation_log_errors)
+	{
+		$log_to = 'teacher';
+	}
+	
 	# log result
 	my $nocomit = $self->user_log->nocomit;
 	$self->log_mode('comit');
 	if ($self->compilation->result eq 'warnings')
 	{
-		$self->log($Config->{Compilation}->{warnings}."\n");
+		$self->log($Config->{Compilation}->{warnings}."\n", $log_to);
 		my $path = $self->compilation->output_path;
-		$self->log(`cat $path`."\n\n");
+		$self->log(`cat $path`."\n\n", $log_to);
 	}
 	elsif ($self->compilation->result eq 'errors')
 	{
-		$self->log($Config->{Compilation}->{errors}."\n");
+		$self->log($Config->{Compilation}->{errors}."\n", $log_to);
 		my $path = $self->compilation->output_path;
-		$self->log(`cat $path`."\n\n");
+		$self->log(`cat $path`."\n\n", $log_to);
 	}
 	if ($nocomit) { $self->log_mode('nocomit'); }
 }
