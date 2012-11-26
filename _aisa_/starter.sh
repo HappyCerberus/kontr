@@ -12,12 +12,12 @@ if [ $? -ne 0 ]; then exit 0; fi
 
 # update kontr
 pushd /home/xtoth1/kontrNG
-git pull
+timeout 120 git pull
 popd
 
 # update tests
 pushd /home/xtoth1/kontrNG/_tests_
-git pull
+timeout 120 git pull
 popd
 
 . /packages/run/modules-2.0/init/bash
