@@ -82,7 +82,7 @@ $student->print_body($student_email);
 close $student_email;
 
 #Send student email
-$student->send;
+unless ($Config->{Email}->{dont_send}) { $student->send; }
 
 #Teacher email
 my $teacher = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->teacher->email), 
@@ -119,7 +119,9 @@ $teacher->print_body($teacher_email);
 close $teacher_email;
 
 #But send it only if needed
-if ($session->run_type eq 'teacher' or $different_submitter) {	$teacher->send; }
+if ($session->run_type eq 'teacher' or $different_submitter) {	
+	unless ($Config->{Email}->{dont_send}) { $teacher->send; }
+}
 
 #Log output from reporter
 my $report_log = Config::Tiny->new->read('config.ini')->{Global}->{report_log};
