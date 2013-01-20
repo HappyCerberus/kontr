@@ -1,0 +1,9 @@
+V SVN repozitari chybi pozadovane soubory.
+
+Ujistete se, ze jste provedli commit a ze mate v adresari spravne soubory.
+
+Chybejici soubory:
+[% files %]
+
+S pozdravem
+Kontr - automaticky system opravy domacich ukolu

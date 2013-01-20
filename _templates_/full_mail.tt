@@ -1,0 +1,12 @@
+Vysledek pro studenta [% student %] UCO [% uco %] (login [% login %]).
+Cvicici tohoto studenta je [% cvicici %].
+
+Shrnuti vysledku:
+[% summary %]
+
+
+Zaznam testu:
+[% log %]
+
+S pozdravem
+Kontr - automaticky system opravy domacich ukolu
