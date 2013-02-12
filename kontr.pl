@@ -10,9 +10,11 @@ use warnings;
 use FISubmissionInternal;
 use Lock;
 use Moose::Util::TypeConstraints;
+use DateTime;
 
 print "[KONTR] SESSION START\n";
 
+my $start = DateTime->now;
 my $submission = find_type_constraint('FISubmissionInternal')->coerce($ARGV[0]);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->runType);
 
@@ -29,10 +31,15 @@ else {
 }
 
 # Fetch data from SVN
-my $svn = new SVN();
+my $svn = new SVN($session);
 #Add revision if needed
 if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{revision}) {
-	$svn->revision($submission->config->{SVN}->{revision});
+	if (int($submission->config->{SVN}->{revision}) > $svn->revision) { #Invalid revision number
+		$session->add_summary("* nepovedlo se stahnout revizi ".$submission->config->{SVN}->{revision}.", pouzita posledni revize (".$svn->revision.")\n");
+	}
+	else {
+		$svn->revision($submission->config->{SVN}->{revision});
+	}
 }
 $svn->fetch($session);
 exit 1 unless $svn->result eq 'success';
@@ -44,11 +51,17 @@ $session->process();
 my $generator = new HTMLGenerator();
 $generator->generate($session);
 
+my $end = DateTime->now;
+my $diff = $end - $start;
+
 # Send emails
 my $Config = Config::Tiny->new;
 $Config = Config::Tiny->read('config.ini');
 my $filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
 	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
+my $load = `uptime`;
+$load =~ s/^.*load average: //;
+$load =~ s/\s+$//; #Trip newline at the end
 
 #Student email
 my $subj;
@@ -66,6 +79,11 @@ $student->set_param(student => $session->user->name);
 $student->set_param(uco => $session->user->uco);
 $student->set_param(login => $session->user->login);
 $student->set_param(cvicici => $session->user->teacher->name);
+$student->set_param(revision => $svn->revision, 
+	timestamp => $session->timestamp,
+	load => $load, 
+	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
+	other_info => '');
 
 my @sparam;
 foreach ($session->student_attachments)
@@ -95,6 +113,12 @@ $teacher->set_param(student => $session->user->name);
 $teacher->set_param(uco => $session->user->uco);
 $teacher->set_param(login => $session->user->login);
 $teacher->set_param(cvicici => $session->user->teacher->name);
+$teacher->set_param(revision => $svn->revision, 
+	timestamp => $session->timestamp,
+	load => $load, 
+	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
+	other_info => "Adresar vyhodnoceni je $filepath.\nPro nove odevzdani se stejnym zdrojovym kodem spustte /home/xtoth1/kontrPublic/odevzdavam ".$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".$session->user->login." ".$svn->revision."\n");
+
 
 my @param;
 foreach ($generator->files)

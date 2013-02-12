@@ -26,10 +26,10 @@ has 'config' => ( is => 'ro', isa => 'Config::Tiny', lazy_build => 1 );
 subtype 'SubmissionFilename',
 	as 'Str',
 	where {
-		return 0 unless /^([^_]+_){3}[^_]+/;
+		return 0 unless /^([^_ ]+_){3}[^_ ]+/;
 		
 		my @data = split ('_', basename($_));
-		
+			
 		return 0 unless find_type_constraint('SubmissionClass')->check($data[0]);
 		return 0 unless find_type_constraint('SubmissionMode')->check($data[1]);
 		
@@ -170,7 +170,7 @@ sub cleanup {
 	foreach (get_bad($prefix)) {
 		my $file = $prefix.'/'.$_;
 		print "BAD_SUBMISSION: $_\n";
-		`rm -f "$file"`;
+		system("rm -f '$file'");
 	}
 }
 

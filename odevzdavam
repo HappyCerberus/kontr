@@ -11,7 +11,7 @@ use FIHomework;
 no utf8;
 
 # required parameters: class homework type (source) (revision)
-if (scalar @ARGV != 3 and scalar @ARGV != 4)
+if (scalar @ARGV != 3 and scalar @ARGV != 4 and scalar @ARGV != 5)
 {
 	printf	"Tento skript vyžaduje přesně tři parametry.\n".
 		"\t* předmět (pb071 pro cecko, pb161 pro cpp)\n".
@@ -80,7 +80,7 @@ try {
 		printf "Domácí úkol nemůžete odevzdat.\n";
 		exit 1;
 	}
-	if ($info->is_special and scalar @ARGV == 4) {
+	if ($info->is_special and scalar @ARGV == 4 or scalar @ARGV == 5) {
 		my $info2;
 		try {
 			$info2 = new StudentInfo(login => $ARGV[3], class => $class);
@@ -88,8 +88,15 @@ try {
 		catch {
 			die "Pokus o odevzdání za studenta '".$ARGV[3]."', který není veden v seznamu studentů.\n";
 		};
-		printf "* Odevzdání za studenta '".$info2->login."'.\n\n";
+		printf "* Odevzdání za studenta '".$info2->login."'.\n";
 		$s->config->{SVN} = { source => $info2->login };
+		if (scalar @ARGV == 5 and $ARGV[4] =~ /^\d+$/) { #SVN revision
+			printf "* SVN revize ".$ARGV[4].".\n\n";
+			$s->config->{SVN}->{revision} = $ARGV[4];
+		}
+		else {
+			printf "* Posledni SVN revize.\n\n";
+		}
 	}
 
 	printf "Probíhá odevzdání domácího úkolu \"$homework\" v režimu \"$type\".\n\n";

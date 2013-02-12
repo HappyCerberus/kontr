@@ -12,15 +12,28 @@ use Moose;
 use Mailer;
 use Config::Tiny;
 use Exec;
+use Session;
 use Moose::Util::TypeConstraints;
 use File::Basename;
 use File::Slurp qw(read_file);
 
 enum 'SVNResult', [ qw(success cant_update cant_download missing_files) ];
 has 'result' => ( is => 'rw', isa => 'SVNResult', default => 'success' );
-has 'url' => (is => 'rw', isa => 'Str');
+has 'url' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'revision' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'missing_files' => (is => 'rw', isa => 'Str', default => '');
+has 'session' => (is => 'rw', isa => 'Session', required => 1);
+has 'config' => (is => 'ro', isa => 'Config::Tiny', lazy_build => 1);
+
+sub BUILDARGS
+{
+	my $class = shift;
+
+	die "Wrong number of parameters for SVN" unless scalar @_ == 1;
+	
+	my $session = shift;
+	return { 'session' => $session };
+}
 
 sub _build_revision {
 	my $self = shift;
@@ -32,17 +45,25 @@ sub _build_revision {
 	return $rev;
 }
 
+sub _build_url {
+	my $self = shift;
+	
+	$self->url($self->config->{SVN}->{base_url}."/".$self->session->user->login."_".$self->session->class);
+}
+
+sub _build_config {
+	Config::Tiny->new->read('config.ini');
+}
+
 sub _handle_error {
 	my $self = shift;
-	my $session = shift;
-	my $config = shift;
 	
 	if ($self->result eq 'success') { return 0; }
 	
 	# report error by email
-	my $mail = new Mailer(	to => $session->user->email, 
-				reply => $config->{Global}->{admin}, 
-				subject => $config->{SVN}->{$self->result.'_subj'},
+	my $mail = new Mailer(	to => $self->session->user->email, 
+				reply => $self->config->{Global}->{admin}, 
+				subject => $self->config->{SVN}->{$self->result.'_subj'},
 				template => 'svn_'.$self->result);
 	
 	if ($self->result eq 'missing_files') {
@@ -124,48 +145,43 @@ sub _checkout {
 sub fetch
 {
 	my $self = shift;
-	my $session = shift;
 
-	my $Config = Config::Tiny->new;
-	$Config = Config::Tiny->read('config.ini');
-
-	$self->url($Config->{SVN}->{base_url}."/".$session->user->login."_".$session->class);	
-	my $path = $Config->{SVN}->{base_path}."/".$session->user->login."_".$session->class;
+	my $path = $self->config->{SVN}->{base_path}."/".$self->session->user->login."_".$self->session->class;
 
 	if (! -d $path) { #If path exists, update will be done during download
 		if ($self->_checkout($path)) { #cant_download
-			$self->_handle_error($session, $Config);
+			$self->_handle_error();
 			return;
 		}
 	}
 
-	$session->repo_path($path);
-	my $prefix = $path.'/'.$session->task.'/';
-	my @files = read_file($Config->{Tests}->{files_path}."/".$session->class."/".$session->task."/required_files");
+	$self->session->repo_path($path);
+	my $prefix = $path.'/'.$self->session->task.'/';
+	my @files = read_file($self->config->{Tests}->{files_path}."/".$self->session->class."/".$self->session->task."/required_files");
 	my @required = map { my $s = $prefix.$_; $s =~ s/\s+$//; $s; } (grep /^[^\?]/, @files);
 	my @optional = map { my $s = $prefix.substr($_, 1); $s =~ s/\s+$//; $s; } (grep /^\?/, @files);
 
 	for my $file (@required) {
 		my $res = $self->_fetch_file($file);
 		if ($res == 1) { #If you should stop immediately (cant_update)
-			$self->_handle_error($session, $Config);
+			$self->_handle_error();
 			return;
 		}
 		elsif ($res == 0) {
-			$session->add_available_file(substr $file, length $prefix);
+			$self->session->add_available_file(substr $file, length $prefix);
 		}
 	}
 	for my $file (@optional) {
 		my $res = $self->_fetch_file($file, 1);
 		if ($res == 1) { #If you should stop immediately (cant_update)
-			$self->_handle_error($session, $Config);
+			$self->_handle_error();
 			return;
 		}
 		elsif ($res == 0) { #File available
-			$session->add_available_file(substr $file, length $prefix);
+			$self->session->add_available_file(substr $file, length $prefix);
 		}
 	}
-	$self->_handle_error($session, $Config); #If there are missing files, report them
+	$self->_handle_error(); #If there are missing files, report them
 }
 
 no Moose;

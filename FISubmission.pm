@@ -65,6 +65,7 @@ around validate => sub {
 	if (not $self->user->is_special) {
 		return 0 unless $self->config->write_string eq '';
 	}
+	return 0 if exists $self->config->{SVN} and exists $self->config->{SVN}->{revision} and not $self->config->{SVN}->{revision} =~ /^\d+$/;
 	$self->$orig;
 };
 
@@ -103,7 +104,7 @@ around cleanup => sub {
 	
 	foreach (get_bad()) {
 		print "BAD_SUBMISSION: $_\n";
-		`rm -f "$_"`;
+		system("rm -f '$_'");
 	}
 };
 
