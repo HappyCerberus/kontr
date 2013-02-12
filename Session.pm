@@ -21,7 +21,7 @@ use strict;
 
 has 'timestamp' => (traits => ['String'], is => 'rw', isa => 'Str', default => sub { POSIX::strftime("%Y_%m%d_%H%M%S", localtime); } );
 
-has 'register' => ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Str]', default => sub { {} }, handles => { set_value => 'set', get_value => 'get', got_value => 'exists' }, );
+has 'register' => ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Str]', default => sub { {} }, handles => { set_value => 'set', get_value => 'get', got_value => 'exists', remove_value => 'delete' }, );
 
 has 'user' => ( is => 'rw', isa => 'StudentInfo' );
 has 'class' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
