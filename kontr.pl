@@ -68,7 +68,14 @@ my $subj;
 if ($session->run_type eq 'student')
 { $subj = $Config->{Global}->{student_subj}; }
 else { $subj = $Config->{Global}->{result_subj}; }
- 
+
+#Create human readable timestamp
+my @timestamps = ($session->timestamp =~ /^(\d+)_(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})$/);
+$timestamps[1] =~ s/^0//; #Delete zero at the beginning of day and month
+$timestamps[2] =~ s/^0//;
+my $timestamp = $timestamps[2].". ".$timestamps[1].". ".$timestamps[0]." ". #Day, month, year
+	$timestamps[3].":".$timestamps[4].":".$timestamps[5]; #Hour, minute, second
+
 my $student = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->email), 
 				reply => $session->user->teacher->email,
 				subject => "[".$session->class."][".$session->task."]".$subj,
@@ -80,7 +87,7 @@ $student->set_param(uco => $session->user->uco);
 $student->set_param(login => $session->user->login);
 $student->set_param(cvicici => $session->user->teacher->name);
 $student->set_param(revision => $svn->revision, 
-	timestamp => $session->timestamp,
+	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
 	other_info => '');
@@ -114,7 +121,7 @@ $teacher->set_param(uco => $session->user->uco);
 $teacher->set_param(login => $session->user->login);
 $teacher->set_param(cvicici => $session->user->teacher->name);
 $teacher->set_param(revision => $svn->revision, 
-	timestamp => $session->timestamp,
+	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
 	other_info => "Adresar vyhodnoceni je $filepath.\nPro nove odevzdani se stejnym zdrojovym kodem spustte /home/xtoth1/kontrPublic/odevzdavam ".$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".$session->user->login." ".$svn->revision."\n");
