@@ -18,6 +18,13 @@ my $start = DateTime->now;
 my $submission = find_type_constraint('FISubmissionInternal')->coerce($ARGV[0]);
 my $session = new Session($submission->user->login, $submission->homework->class, $submission->homework->name, $submission->runType);
 
+my $Config = Config::Tiny->new;
+$Config = Config::Tiny->read('config.ini');
+my $filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
+	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
+
+system("echo -n $filepath > $ARGV[1]") if $ARGV[1];
+
 my $different_submitter = 0;
 #Different data source
 if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{source}) {
@@ -55,10 +62,6 @@ my $end = DateTime->now;
 my $diff = $end - $start;
 
 # Send emails
-my $Config = Config::Tiny->new;
-$Config = Config::Tiny->read('config.ini');
-my $filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
-	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
 my $load = `uptime`;
 $load =~ s/^.*load average: //;
 $load =~ s/\s+$//; #Trip newline at the end
