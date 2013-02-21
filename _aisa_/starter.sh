@@ -6,6 +6,8 @@ if [ -r /home/xtoth1/kontrNG/maintenance ]; then exit 0; fi
 
 exec 1>>/home/xtoth1/kontrNG/_logs_/starter.sh 2>&1
 
+date
+
 # try to lock the master lock, bail after 5*8 seconds
 lockfile -r5 /home/xtoth1/kontrNG/master.lock
 if [ $? -ne 0 ]; then exit 0; fi
