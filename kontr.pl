@@ -32,6 +32,11 @@ if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{so
 	print "<user>".$session->user->login." with source from ".$source_user."\n";
 	$different_submitter = $session->user->login;
 	$session->user(new StudentInfo(login => $source_user, class => $session->{'class'}));
+	
+	$filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
+	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
+
+	system("echo -n $filepath > $ARGV[1]") if $ARGV[1];
 }
 else {
 	print "<user>".$session->user->login."\n";
