@@ -43,7 +43,12 @@ else {
 }
 
 # Fetch data from SVN
-my $svn = new SVN($session);
+my $svn = 'SVN';
+if (exists $Config->{SVN}->{class}) { 
+	$svn = $Config->{SVN}->{class};
+	eval "use $svn";
+}
+$svn = new $svn($session);
 #Add revision if needed
 if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{revision}) {
 	if (int($submission->config->{SVN}->{revision}) > $svn->revision) { #Invalid revision number
