@@ -63,6 +63,13 @@ sub compile
 	# compile
 	$self->compilation(new Compiler());
 	$self->compilation->compile($self);
+	
+	if ($self->compilation->result eq 'failure') {
+		$self->log($Config->{Compilation}->{failure}."\n", 'both');
+		$self->session->add_summary($Config->{Compilation}->{failure}."\n");
+		$self->add_tag('compilation_failure');
+		return;
+	}
 
 	my $log_to = 'both';
 	if (not $self->compilation_log_errors)
@@ -78,12 +85,14 @@ sub compile
 		$self->log($Config->{Compilation}->{warnings}."\n", $log_to);
 		my $path = $self->compilation->output_path;
 		$self->log(`cat $path`."\n\n", $log_to);
+		$self->add_tag('compilation_warnings');
 	}
 	elsif ($self->compilation->result eq 'errors')
 	{
 		$self->log($Config->{Compilation}->{errors}."\n", $log_to);
 		my $path = $self->compilation->output_path;
 		$self->log(`cat $path`."\n\n", $log_to);
+		$self->add_tag('compilation_errors');
 	}
 	if ($nocomit) { $self->log_mode('nocomit'); }
 }
