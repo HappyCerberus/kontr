@@ -150,6 +150,18 @@ sub _checkout {
 	}
 	return 0;
 }
+sub remove_if_broken {
+	my $self = shift;
+	
+	my $path = $self->path;
+	my $url = $self->url;
+	
+	if (`svn info $path | grep UUID` ne `svn info $url | grep UUID`) {
+		`rm -rf $path`;
+		return $self->_checkout();
+	}
+	return 0;
+}
 sub fetch
 {
 	my $self = shift;
@@ -159,6 +171,10 @@ sub fetch
 			$self->_handle_error();
 			return;
 		}
+	}
+	if ($self->remove_if_broken()) {
+		$self->_handle_error();
+		return;
 	}
 
 	$self->session->repo_path($self->path);

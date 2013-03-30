@@ -65,5 +65,9 @@ sub _checkout {
 	return 0;
 }
 
+sub remove_if_broken {
+	return 0;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
