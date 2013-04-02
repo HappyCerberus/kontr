@@ -100,6 +100,7 @@ $student->set_param(uco => $session->user->uco);
 $student->set_param(login => $session->user->login);
 $student->set_param(cvicici => $session->user->teacher->name);
 $student->set_param(revision => $svn->revision, 
+	uuid => $svn->uuid,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
@@ -134,6 +135,7 @@ $teacher->set_param(uco => $session->user->uco);
 $teacher->set_param(login => $session->user->login);
 $teacher->set_param(cvicici => $session->user->teacher->name);
 $teacher->set_param(revision => $svn->revision, 
+	uuid => $svn->uuid,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 

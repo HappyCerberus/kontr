@@ -28,6 +28,10 @@ sub _build_url {
 	return $self->path;
 }
 
+sub _build_uuid {
+	return 'none';
+}
+
 
 sub _fetch_dir {
 	my $self = shift;

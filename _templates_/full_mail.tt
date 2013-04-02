@@ -1,4 +1,4 @@
-Vysledek pro studenta [% student %] UCO [% uco %] (login [% login %]), SVN revize [% revision %].
+Vysledek pro studenta [% student %] UCO [% uco %] (login [% login %]), SVN revize [% revision %] (UUID repozitare [% uuid %]).
 Cvicici tohoto studenta je [% cvicici %].
 Cas vyhodnoceni je [% timestamp %], load [% load %], doba provedeni [% time %].
 [% other_info %]

@@ -25,6 +25,7 @@ has 'revision' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'missing_files' => (is => 'rw', isa => 'Str', default => '');
 has 'session' => (is => 'rw', isa => 'Session', required => 1);
 has 'config' => (is => 'ro', isa => 'Config::Tiny', lazy_build => 1);
+has 'uuid' => (is => 'ro', isa => 'Str', lazy_build => 1);
 
 sub BUILDARGS
 {
@@ -44,6 +45,16 @@ sub _build_revision {
 	$rev =~ s/\s+$//;
 	
 	return $rev;
+}
+
+sub _build_uuid {
+	my $self = shift;
+	my $path = $self->path;
+	
+	my $uuid = `svn info $path | grep UUID | sed -e 's/^.*: //'`;
+	$uuid =~ s/\s+$//;
+	
+	return $uuid;
 }
 
 sub _build_url {
