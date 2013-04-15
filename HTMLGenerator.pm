@@ -35,7 +35,9 @@ sub generate
 		my $html = `basename $_`;
 		chomp $html;
 		$html = $work_path."/".$html.".html";
-		`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
+		#`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
+		#TEMPORARY BUGFIX
+		`cp $_ $html`;
 		$self->add_file($html);
 	}
 }
