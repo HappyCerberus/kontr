@@ -20,10 +20,12 @@ use File::Slurp qw(read_file);
 enum 'SVNResult', [ qw(success cant_update cant_download missing_files) ];
 has 'result' => ( is => 'rw', isa => 'SVNResult', default => 'success' );
 has 'url' => (is => 'rw', isa => 'Str', lazy_build => 1);
+has 'path' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'revision' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'missing_files' => (is => 'rw', isa => 'Str', default => '');
 has 'session' => (is => 'rw', isa => 'Session', required => 1);
 has 'config' => (is => 'ro', isa => 'Config::Tiny', lazy_build => 1);
+has 'uuid' => (is => 'ro', isa => 'Str', lazy_build => 1);
 
 sub BUILDARGS
 {
@@ -45,10 +47,26 @@ sub _build_revision {
 	return $rev;
 }
 
+sub _build_uuid {
+	my $self = shift;
+	my $path = $self->path;
+	
+	my $uuid = `svn info $path | grep UUID | sed -e 's/^.*: //'`;
+	$uuid =~ s/\s+$//;
+	
+	return $uuid;
+}
+
 sub _build_url {
 	my $self = shift;
 	
-	$self->url($self->config->{SVN}->{base_url}."/".$self->session->user->login."_".$self->session->class);
+	return $self->config->{SVN}->{base_url}."/".$self->session->user->login."_".$self->session->class;
+}
+
+sub _build_path {
+	my $self = shift;
+	
+	return $self->config->{SVN}->{base_path}."/".$self->session->user->login."_".$self->session->class;
 }
 
 sub _build_config {
@@ -133,7 +151,8 @@ sub _fetch_file {
 
 sub _checkout {
 	my $self = shift;
-	my $path = shift;
+	
+	my $path = $self->path;
 	my $url = $self->url;
 	
 	if (system ("svn checkout $url $path --depth empty") != 0) {
@@ -142,21 +161,35 @@ sub _checkout {
 	}
 	return 0;
 }
+sub remove_if_broken {
+	my $self = shift;
+	
+	my $path = $self->path;
+	my $url = $self->url;
+	
+	if (`svn info $path | grep UUID` ne `svn info $url | grep UUID`) {
+		`rm -rf $path`;
+		return $self->_checkout();
+	}
+	return 0;
+}
 sub fetch
 {
 	my $self = shift;
 
-	my $path = $self->config->{SVN}->{base_path}."/".$self->session->user->login."_".$self->session->class;
-
-	if (! -d $path) { #If path exists, update will be done during download
-		if ($self->_checkout($path)) { #cant_download
+	if (! -d $self->path) { #If path exists, update will be done during download
+		if ($self->_checkout()) { #cant_download
 			$self->_handle_error();
 			return;
 		}
 	}
+	if ($self->remove_if_broken()) {
+		$self->_handle_error();
+		return;
+	}
 
-	$self->session->repo_path($path);
-	my $prefix = $path.'/'.$self->session->task.'/';
+	$self->session->repo_path($self->path);
+	my $prefix = $self->path.'/'.$self->session->task.'/';
 	my @files = read_file($self->config->{Tests}->{files_path}."/".$self->session->class."/".$self->session->task."/required_files");
 	my @required = map { my $s = $prefix.$_; $s =~ s/\s+$//; $s; } (grep /^[^\?]/, @files);
 	my @optional = map { my $s = $prefix.substr($_, 1); $s =~ s/\s+$//; $s; } (grep /^\?/, @files);

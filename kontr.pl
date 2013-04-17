@@ -32,13 +32,23 @@ if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{so
 	print "<user>".$session->user->login." with source from ".$source_user."\n";
 	$different_submitter = $session->user->login;
 	$session->user(new StudentInfo(login => $source_user, class => $session->{'class'}));
+	
+	$filepath = $Config->{Tests}->{stage_path}."/".$session->class."/".
+	$session->task."/".$session->user->login."_".$session->timestamp; #Base path for emails saved into file
+
+	system("echo -n $filepath > $ARGV[1]") if $ARGV[1];
 }
 else {
 	print "<user>".$session->user->login."\n";
 }
 
 # Fetch data from SVN
-my $svn = new SVN($session);
+my $svn = 'SVN';
+if (exists $Config->{SVN}->{class}) { 
+	$svn = $Config->{SVN}->{class};
+	eval "use $svn";
+}
+$svn = new $svn($session);
 #Add revision if needed
 if (exists $submission->config->{SVN} and exists $submission->config->{SVN}->{revision}) {
 	if (int($submission->config->{SVN}->{revision}) > $svn->revision) { #Invalid revision number
@@ -90,6 +100,7 @@ $student->set_param(uco => $session->user->uco);
 $student->set_param(login => $session->user->login);
 $student->set_param(cvicici => $session->user->teacher->name);
 $student->set_param(revision => $svn->revision, 
+	uuid => $svn->uuid,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
@@ -124,6 +135,7 @@ $teacher->set_param(uco => $session->user->uco);
 $teacher->set_param(login => $session->user->login);
 $teacher->set_param(cvicici => $session->user->teacher->name);
 $teacher->set_param(revision => $svn->revision, 
+	uuid => $svn->uuid,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 

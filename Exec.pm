@@ -26,7 +26,7 @@ has 'stdout_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default =
 has 'stderr_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '/dev/null' );
 has 'work_path' => ( is => 'rw', isa => 'directory', default => '/home/xtoth1' );
 
-has 'limit_runtime' => ( traits => ['Number'], is => 'rw', isa => 'Int', default => 120 );
+has 'limit_runtime' => ( traits => ['Number'], is => 'rw', isa => 'Int', default => 20 );
 has 'limit_output' => ( traits => ['Number'], is => 'rw', isa => 'Int', default => 65536 );
 
 enum 'ExitType', [ qw(normal error_signal error_system limit_time limit_size) ];

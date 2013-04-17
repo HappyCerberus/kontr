@@ -12,8 +12,8 @@ use Moose::Util::TypeConstraints;
 
 use Exec;
 
-enum 'CompileResult', [ qw(clean warnings errors) ];
-has 'result' => ( isa => 'CompileResult', is => 'rw', default => 'errors' );
+enum 'CompileResult', [ qw(clean warnings errors failure) ];
+has 'result' => ( isa => 'CompileResult', is => 'rw' );
 
 has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
 
@@ -44,16 +44,25 @@ sub compile
 
 	$cmd = $comp_flags." ".$cmd." -o ".$test->name;
 	
-	my $compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, limit_runtime => '120', limit_output => 1024*1024*1024);
+	my $compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, limit_runtime => 120, limit_output => 1024*1024*1024);
 	$compile->exec(split(' ',$cmd." -Werror"));
-	if ($compile->failure || $compile->exit_value != 0)
+	if ($compile->failure)
+	{
+		$self->result('failure');
+		return;
+	}
+	if ($compile->exit_value != 0)
 	{
 		$has_warnings = 1; # warnings or errors present
 	}	
 	
 	$compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, output_path => $test->work_path."/compilation", limit_runtime => 120, limit_output => 1024*1024*1024);
 	$compile->exec(split(' ',$cmd));
-	if ($compile->failure || $compile->exit_value != 0)
+	if ($compile->failure) {
+		$self->result('failure');
+		return;
+	}
+	if ($compile->exit_value != 0)
 	{
 		$self->result('errors');
 		$self->output_path($compile->stderr_path);
