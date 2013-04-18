@@ -35,10 +35,11 @@ sub generate
 		my $html = `basename $_`;
 		chomp $html;
 		$html = $work_path."/".$html.".html";
-		#`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
-		#TEMPORARY BUGFIX
-		`cp $_ $html`;
-		$self->add_file($html);
+		`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
+		if (not -f $html) {
+			`cp $_ $html`;
+		}
+		if (-r $html) { $self->add_file($html); }
 	}
 }
 
