@@ -19,6 +19,7 @@ use Analysis;
 use Diff;
 use Valgrind;
 use Report;
+use DetailedLog;
 
 has 'name' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
 
@@ -31,6 +32,7 @@ has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef
 has 'compiled_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_student_file => 'push', staged_compiled_student_files => 'elements', compiled_student_files_string => 'join' } );
 
 has 'report' => ( is => 'rw', isa => 'Report', lazy_build => 1, handles => { add_tag => 'addTag', add_points => 'addPoints' } );
+has 'detailed_log' => ( is => 'rw', isa => 'DetailedLog', required => 1);
 
 has 'master' => ( is => 'rw', isa => 'MasterTest' );
 has 'session' => ( is => 'rw', isa => 'Session' );
@@ -60,9 +62,17 @@ sub compile
 	my $Config = Config::Tiny->new;
 	$Config = Config::Tiny->read('config.ini');
 
+	my $compilation_action = new Action(name => 'compilation', work_path => $self->work_path);
+	
 	# compile
 	$self->compilation(new Compiler());
 	$self->compilation->compile($self);
+	
+	$compilation_action->add_metadata('extra_compiler_flags', $self->extra_compiler_flags);
+	$compilation_action->add_metadata('compilation_result', $self->compilation->result);
+	$compilation_action->add_metadata_file('binary', $self->work_path."/".$self->name);
+	$compilation_action->finished($self->compilation->exec);
+	$self->detailed_log->add_action($compilation_action);
 	
 	if ($self->compilation->result eq 'failure') {
 		$self->log($Config->{Compilation}->{failure}."\n", 'both');
@@ -102,17 +112,33 @@ sub run
 	my $self = shift;
 	my $input = shift;
 	
+	my $action = new Action('name' => 'run', work_path => $self->work_path);
+	
 	$self->execution(new Run(unit => $self));
 	$self->execution->exec($self,$input,@_);
+	
+	$action->finished($self->execution);
+	$self->detailed_log->add_action($action);
 }
 
 sub run_grind
 {
 	my $self = shift;
 	my $input = shift;
+	
+	my $action = new Action('name' => 'run', work_path => $self->work_path);
+	
 	$self->valgrind(new Valgrind(unit => $self));
 	$self->valgrind->exec($self,$input,@_);
 	$self->execution($self->valgrind);
+	
+	$action->add_metadata('grind_errors', $self->valgrind->grind_errors);
+	$action->add_metadata_file('grind_data', $self->valgrind->grind_data);
+	$action->add_metadata_file('grind_user', $self->valgrind->grind_user);
+	$action->add_metadata_file('grind_path', $self->valgrind->grind_path);
+	$action->finished($self->execution);
+	
+	$self->detailed_log->add_action($action);
 }
 
 sub diff_stdout
@@ -120,8 +146,9 @@ sub diff_stdout
 	my $self = shift;
 	my $mode = shift;
 	my $file = shift;
-
-	$self->diff_generic($mode,$self->execution->stdout_path,$self->file_path."/".$file);
+	
+	$self->_diff_generic($mode,$self->execution->stdout_path,$self->file_path."/".$file, 'diff_stdout');
+	
 }
 
 sub diff_stderr
@@ -130,18 +157,36 @@ sub diff_stderr
 	my $mode = shift;
 	my $file = shift;
 	
-	$self->diff_generic($mode,$self->execution->stderr_path,$self->file_path."/".$file);	
+	$self->_diff_generic($mode,$self->execution->stderr_path,$self->file_path."/".$file, 'diff_stderr');
 }
 
-sub diff_generic
+sub _diff_generic
 {
 	my $self = shift;
 	my $mode = shift;
 	my $file1 = shift;
 	my $file2 = shift;
+	my $action_name = shift;
 
+	my $action = new Action('name' => $action_name, 'work_path' => $self->work_path);
+	
 	$self->difference(new Diff(unit => $self));
 	$self->difference->exec($self,$mode,$file1,$file2);
+	
+	$action->add_metadata_file('first_file', $file1);
+	$action->add_metadata_file('first_file', $file2);
+	$action->finished($self->difference);
+	
+	$self->detailed_log->add_action($action);
+}
+
+sub diff_generic {
+	my $self = shift;
+	my $mode = shift;
+	my $file1 = shift;
+	my $file2 = shift;
+	
+	$self->_diff_generic($self,$mode,$file1,$file2, 'diff_generic');
 }
 
 sub analyze_stdout
@@ -300,9 +345,11 @@ sub subtest {
 	my $self = shift;
 	my $name = shift;
 	
+	$self->detailed_log->new_subtest($self->report, $name);
+		
 	my $res = new Report(master => $self->master->name, unit => $self->name, subtest => $name);
 	$self->session->new_report($res);
-	$self->report($res);
+	$self->report($res);	
 }
 
 no Moose;

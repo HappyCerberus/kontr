@@ -19,6 +19,7 @@ use File::stat;
 use Time::HiRes qw(usleep nanosleep);
 
 has 'cmd' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'args' => ( is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_arg => 'push' } );
 
 has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 has 'stdin_path' => ( traits => ['String'],  is => 'rw', isa => 'Str', default => '/dev/null' );
@@ -63,6 +64,7 @@ sub exec
 {
 	my $self = shift;
         my $origdir = getcwd();
+        $self->add_arg(@_);
 
         # fork the program
         my $pid = fork();

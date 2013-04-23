@@ -15,7 +15,8 @@ use Exec;
 enum 'CompileResult', [ qw(clean warnings errors failure) ];
 has 'result' => ( isa => 'CompileResult', is => 'rw' );
 
-has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
+has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'exec' => ( isa => 'Exec', is => 'rw' );
 
 sub compile
 {
@@ -56,7 +57,8 @@ sub compile
 		$has_warnings = 1; # warnings or errors present
 	}	
 	
-	$compile = new Exec(cmd => $comp_bin, work_path => $test->work_path, output_path => $test->work_path."/compilation", limit_runtime => 120, limit_output => 1024*1024*1024);
+	$self->exec(new Exec(cmd => $comp_bin, work_path => $test->work_path, output_path => $test->work_path."/compilation", limit_runtime => 120, limit_output => 1024*1024*1024));
+	$compile = $self->exec;
 	$compile->exec(split(' ',$cmd));
 	if ($compile->failure) {
 		$self->result('failure');
@@ -74,6 +76,7 @@ sub compile
 		$self->output_path($compile->stderr_path);
 		return;
 	}
+	$self->exec($compile);
 	$self->result('clean');
 	$self->output_path($compile->stderr_path);
 }
