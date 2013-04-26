@@ -1,0 +1,62 @@
+#!/bin/bash
+
+students_dat="/home/xtoth1/students.dat"
+teachers_dat="/home/xtoth1/teachers.dat"
+
+
+if [ $# -ne 2 -a $# -ne 3 ]; then
+	echo "Usage: file action (message), where action is:"
+	echo " * students (prints emails of students from file)"
+	echo " * teachers (prints emails of teachers of students from file)"
+	echo " * files (generates resubmission files and adds resubmission message)"
+	exit
+fi
+
+FILE=$1
+ACTION=$2
+if [ $2 = "students" ]; then
+	if [ ! -f $students_dat ]; then
+		echo "students.dat not found!"
+		exit
+	fi
+	students=`cut -d " " -f 2 $1`
+	for i in $students; do
+		grep ^$i $students_dat | cut -d , -f 4,5 | sed -e "s/\([^,]*\),\(.*\)/\2 <\1>,/"
+	done
+fi
+
+if [ $2 = "teachers" ]; then
+	if [ ! -f $students_dat -o ! -f $teachers_dat ]; then
+		echo "students.dat or teachers.dat not found!"
+		exit
+	fi
+	students=`cut -d " " -f 2 $1`
+	tmp=mktemp
+	for i in $students; do 
+		grep ^$i $students_dat | cut -d , -f 6 >> $tmp
+	done
+	uniq=`sort -u $tmp | uniq`
+	for i in $uniq; do
+		grep ^$i $teachers_dat | cut -d , -f 3,4 | sed -e "s/\([^,]*\),\(.*\)/\2 <\1>,/"
+	done
+	rm $tmp
+fi
+
+if [ $2 = "files" ]; then
+	while read line; do
+		data_str=`echo $line | cut -d " " -f 2,3,4,5,6`
+		data=(${data_str// / })
+		
+		submission="nanecisto"
+		if [ ${data[4]} = "teacher" ]; then submission="naostro"; fi
+		
+		filename="${data[2]}_${submission}_${data[0]}_${data[3]}"
+		echo "[SVN]" > $filename
+		echo "revision=${data[1]}" >> $filename
+		if [ $# -eq 3 ]; then
+			echo "[Resubmission]" >> $filename
+			echo "message=${3}" >> $filename
+		fi
+		echo $filename
+	done < $1
+fi
