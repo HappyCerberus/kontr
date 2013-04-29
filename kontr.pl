@@ -11,6 +11,7 @@ use FISubmissionInternal;
 use Lock;
 use Moose::Util::TypeConstraints;
 use DateTime;
+use Plagiarism;
 
 print "[KONTR] SESSION START\n";
 
@@ -67,6 +68,10 @@ $session->process();
 # Generate HTML files from sources
 my $generator = new HTMLGenerator();
 $generator->generate($session);
+
+# Generate files for plagiarism check
+my $plagiarism = new Plagiarism();
+$plagiarism->generate($session, $filepath);
 
 my $end = DateTime->now;
 my $diff = $end - $start;
