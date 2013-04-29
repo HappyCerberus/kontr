@@ -30,8 +30,8 @@ if [ $2 = "teachers" ]; then
 		echo "students.dat or teachers.dat not found!"
 		exit
 	fi
-	students=`cut -d " " -f 2 $1`
-	tmp=mktemp
+	students=`grep 'teacher' $1 | cut -d " " -f 2`
+	tmp=`mktemp`
 	for i in $students; do 
 		grep ^$i $students_dat | cut -d , -f 6 >> $tmp
 	done
