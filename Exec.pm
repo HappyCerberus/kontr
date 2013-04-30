@@ -43,10 +43,7 @@ sub log_stdout
 	my $self = shift;
 	my $type = shift;
 
-	my $path = $self->stdout_path;
-	my $data = `cat $path`;
-	$data = "" unless defined $data;
-	$self->unit->log($data,$type);
+	$self->unit->log_file($self->stdout_path,$type);
 }
 
 sub log_stderr
@@ -54,10 +51,7 @@ sub log_stderr
 	my $self = shift;
 	my $type = shift;
 
-	my $path = $self->stderr_path;
-	my $data = `cat $path`;
-	$data = "" unless defined $data;
-	$self->unit->log($data,$type);
+	$self->unit->log_file($self->stderr_path,$type);
 }
 
 sub exec

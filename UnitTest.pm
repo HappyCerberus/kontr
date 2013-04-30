@@ -20,6 +20,7 @@ use Diff;
 use Valgrind;
 use Report;
 use DetailedLog;
+use LoggedFile;
 
 has 'name' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' ); 
 
@@ -243,6 +244,38 @@ sub log
 
 	if ($type eq 'both' || $type eq 'student')
 	{
+		$self->user_log->add_line($data);
+	}
+}
+
+sub log_file
+{
+	my $self = shift;
+	my $filename = shift;
+	my $type = shift;
+	
+	my $data = `cat $filename`;
+	$data = "" unless defined $data;
+	
+	$type = 'both' unless defined $type;
+
+	if ($type eq 'both' || $type eq 'teacher')
+	{
+		$self->detailed_log->add_teacher_log_file(new LoggedFile(
+			'before_size' => length $self->session->teacher_log->data,
+			'filename' => $filename,
+			'filesize' => length $data
+			));
+		$self->teacher_log->add_line($data);
+	}
+
+	if ($type eq 'both' || $type eq 'student')
+	{
+		$self->detailed_log->add_student_log_file(new LoggedFile(
+			'before_size' => length $self->session->user_log->data,
+			'filename' => $filename,
+			'filesize' => length $data
+			));
 		$self->user_log->add_line($data);
 	}
 }

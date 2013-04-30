@@ -12,6 +12,7 @@ use JSON;
 use Session;
 use Action;
 use Data::Dumper;
+use LoggedFile;
 
 has 'data' => (is => 'rw', isa => 'Str', default => '');
 has 'master' => (is => 'rw');
@@ -19,6 +20,8 @@ has 'session' => (is => 'rw', isa => 'Session', required => 1);
 has 'units' => (is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_unit => 'push', get_unit => 'get', splice_unit => 'splice', clear_units => 'clear'}, default => sub { [] });
 has 'student_log_size' => (is => 'rw', isa => 'Int');
 has 'teacher_log_size' => (is => 'rw', isa => 'Int');
+has 'student_log_files' => (is => 'rw', isa => 'ArrayRef[LoggedFile]', traits => ['Array'], handles => { add_student_log_file => 'push', clear_student_log_files => 'clear', list_student_log_files => 'elements', map_student_log_files => 'map'});
+has 'teacher_log_files' => (is => 'rw', isa => 'ArrayRef[LoggedFile]', traits => ['Array'], handles => { add_teacher_log_file => 'push', clear_teacher_log_files => 'clear', list_teacher_log_files => 'elements', map_teacher_log_files => 'map' });
 has 'subtests' => (is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_subtest => 'push', clear_subtests => 'clear', get_subtest => 'get', splice_subtest => 'splice'}, default => sub { [] } );
 has 'actions' => (is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_action => 'push', clear_actions => 'clear', map_actions => 'map' }, default => sub { [] } );
 
@@ -79,14 +82,31 @@ sub _set_log_size {
 	
 	$self->student_log_size(length $self->session->user_log->data);
 	$self->teacher_log_size(length $self->session->teacher_log->data);
+	$self->clear_student_log_files();
+	$self->clear_teacher_log_files();
 }
 
 sub _get_logs {
 	my $self = shift;
 	
+	my $student_log = substr ($self->session->user_log->data, $self->student_log_size);
+	my $student_offset = $self->student_log_size;
+	my $teacher_log = substr ($self->session->teacher_log->data, $self->teacher_log_size);
+	my $teacher_offset = $self->teacher_log_size;
+	
+	for my $student_file ($self->list_student_log_files) {
+		($student_log, $student_offset) = $student_file->remove_from_log($student_log, $student_offset);
+	}
+	
+	for my $teacher_file ($self->list_teacher_log_files) {
+		($teacher_log, $teacher_offset) = $teacher_file->remove_from_log($teacher_log, $teacher_offset);
+	}
+	
 	my %ret = (
-		'student_log' => substr ($self->session->user_log->data, $self->student_log_size),
-		'teacher_log' => substr ($self->session->teacher_log->data, $self->teacher_log_size),
+		'student_log' => $student_log,
+		'teacher_log' => $teacher_log,
+		'student_log_files' => [ $self->map_student_log_files( sub { $_->get() })],
+		'teacher_log_files' => [ $self->map_teacher_log_files( sub { $_->get() })],
 	);
 	
 	return \%ret;
