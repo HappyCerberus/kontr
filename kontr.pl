@@ -11,6 +11,7 @@ use FISubmissionInternal;
 use Lock;
 use Moose::Util::TypeConstraints;
 use DateTime;
+use Plagiarism;
 
 print "[KONTR] SESSION START\n";
 
@@ -68,6 +69,10 @@ $session->process();
 my $generator = new HTMLGenerator();
 $generator->generate($session);
 
+# Generate files for plagiarism check
+my $plagiarism = new Plagiarism();
+$plagiarism->generate($session, $filepath);
+
 my $end = DateTime->now;
 my $diff = $end - $start;
 
@@ -89,6 +94,11 @@ $timestamps[2] =~ s/^0//;
 my $timestamp = $timestamps[2].". ".$timestamps[1].". ".$timestamps[0]." ". #Day, month, year
 	$timestamps[3].":".$timestamps[4].":".$timestamps[5]; #Hour, minute, second
 
+my $resubmission_text = '';
+if (exists $submission->config->{Resubmission} and exists $submission->config->{Resubmission}->{message}) {
+	$resubmission_text = "\n".$submission->config->{Resubmission}->{message}."\n";
+}
+
 my $student = new Mailer(	to => ($different_submitter ? $different_submitter : $session->user->email), 
 				reply => $session->user->teacher->email,
 				subject => "[".$session->class."][".$session->task."]".$subj,
@@ -104,7 +114,7 @@ $student->set_param(revision => $svn->revision,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
-	other_info => '');
+	other_info => ''.$resubmission_text);
 
 my @sparam;
 foreach ($session->student_attachments)
@@ -139,7 +149,7 @@ $teacher->set_param(revision => $svn->revision,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
-	other_info => "Adresar vyhodnoceni je $filepath.\nPro nove odevzdani se stejnym zdrojovym kodem spustte /home/xtoth1/kontrPublic/odevzdavam ".$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".$session->user->login." ".$svn->revision."\n");
+	other_info => "Adresar vyhodnoceni je $filepath.\nPro nove odevzdani se stejnym zdrojovym kodem spustte /home/xtoth1/kontrPublic/odevzdavam ".$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".$session->user->login." ".$svn->revision."\n".$resubmission_text);
 
 
 my @param;
