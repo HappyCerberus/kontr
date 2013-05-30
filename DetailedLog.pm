@@ -151,9 +151,7 @@ sub dump {
 	
 	open $detailed, $filename;
 	print $detailed '[';
-	for my $i (@{ $session->detailed }) {
-		print $detailed $i;
-	}
+	print $detailed join(',', @{ $session->detailed });
 	print $detailed ']';
 	close $detailed;
 }
