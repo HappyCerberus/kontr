@@ -16,9 +16,11 @@ use Session;
 use Moose::Util::TypeConstraints;
 use File::Basename;
 use File::Slurp qw(read_file);
+use IPC::Run3 'run3';
 
 enum 'SVNResult', [ qw(success cant_update cant_download missing_files) ];
 has 'result' => ( is => 'rw', isa => 'SVNResult', default => 'success' );
+has 'info' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'url' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'path' => (is => 'rw', isa => 'Str', lazy_build => 1);
 has 'revision' => (is => 'rw', isa => 'Str', lazy_build => 1);
@@ -37,23 +39,41 @@ sub BUILDARGS
 	return { 'session' => $session };
 }
 
-sub _build_revision {
+sub _build_info {
 	my $self = shift;
 	my $url = $self->url;
 	
-	my $rev = `svn info $url | grep Revision | sed -e 's/[^0-9]*//'`;
-	$rev =~ s/\s+$//;
+	my $info = '';
+	for my $i (1 .. 10) {
+		$info = `svn info $url`;
+		last unless ($? >> 8);
+		sleep 1;
+	}
 	
+	$self->info($info);
+}
+
+sub _build_revision {
+	my $self = shift;
+	my $url = $self->url;
+	my $info = $self->info;
+	my $rev = '';
+	
+	#HOTFIX
+	run3 "grep Revision - | sed -e 's/[^0-9]*//'", \$info, \$rev;
+	$rev =~ s/\s+$//;
 	return $rev;
 }
 
 sub _build_uuid {
 	my $self = shift;
 	my $path = $self->path;
+	my $info = $self->info;
+	my $uuid = '';
 	
-	my $uuid = `svn info $path | grep UUID | sed -e 's/^.*: //'`;
+	#HOTFIX
+	run3 "grep UUID - | sed -e 's/[^0-9]*//'", \$info, \$uuid;
 	$uuid =~ s/\s+$//;
-	
 	return $uuid;
 }
 
@@ -108,7 +128,15 @@ sub _fetch_dir {
 		if (! $self->_fetch_dir($prev)) { return 0; }
 		
 		my $cmd = "cd $prev; svn update $name -r $rev --depth empty;";
-		if (system($cmd) != 0) {
+		my $last = 0;
+		
+		#HOTFIX
+		for my $i (1 .. 10) {
+			$last = system($cmd);
+			last unless $last;
+			sleep 1;
+		}
+		if ($last != 0) {
 			$self->result('cant_update');
 		}
 	}
@@ -134,7 +162,16 @@ sub _fetch_file {
 	}
 	
 	my $cmd = "cd $prev; svn update -r $rev $name";
-	if (system("$cmd") != 0) {
+	my $last = 0;
+	
+	#HOTFIX
+	for my $i (1 .. 10) {
+		$last = system($cmd);
+		last unless $last;
+		sleep 1;
+	}
+		
+	if ($last != 0) {
 		$self->result('cant_update');
 		return 1; #Immediate stop
 	}
@@ -154,8 +191,14 @@ sub _checkout {
 	
 	my $path = $self->path;
 	my $url = $self->url;
+	my $last = 0;
 	
-	if (system ("svn checkout $url $path --depth empty") != 0) {
+	for my $i (1 .. 10){ 
+		$last = system ("svn checkout $url $path --depth empty");
+		last unless $last;
+		sleep 1;
+	}
+	if ($last != 0) {
 		$self->result('cant_download');
 		return 1;
 	}
@@ -166,8 +209,21 @@ sub remove_if_broken {
 	
 	my $path = $self->path;
 	my $url = $self->url;
+	my $path_uuid = `svn info $path | grep UUID`;
+	my $url_info = '';
 	
-	if (`svn info $path | grep UUID` ne `svn info $url | grep UUID`) {
+	#HOTFIX
+	for my $i (1 .. 10) {
+		$url_info = `svn info $url`;
+		last unless ($? >> 8);
+		sleep 1;
+	}
+	
+	#Extract uuid
+	my $url_uuid = '';
+	run3 'grep UUID -', \$url_info, \$url_uuid;
+	
+	if ($path_uuid ne $url_uuid) {
 		`rm -rf $path`;
 		return $self->_checkout();
 	}
@@ -183,6 +239,7 @@ sub fetch
 			return;
 		}
 	}
+	#Disabled for HOTFIX
 	if ($self->remove_if_broken()) {
 		$self->_handle_error();
 		return;
