@@ -23,7 +23,7 @@ has 'compiled_student_files' => ( traits => ['Array'], is => 'rw', isa => 'Array
 
 has 'units' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { register_unit => 'push', units_count => 'count', get_unit => 'get' } );
 
-has 'detailed_log' => (is => 'rw', isa => 'HashRef');
+has 'detailed_log' => (is => 'rw', isa => 'Str');
 
 sub run_tests
 {

@@ -11,13 +11,12 @@ use Moose;
 use JSON;
 use Session;
 use Action;
-use Data::Dumper;
 use LoggedFile;
 
 has 'data' => (is => 'rw', isa => 'Str', default => '');
-has 'master' => (is => 'rw');
+has 'master' => (is => 'rw', isa => 'Str');
 has 'session' => (is => 'rw', isa => 'Session', required => 1);
-has 'units' => (is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_unit => 'push', get_unit => 'get', splice_unit => 'splice', clear_units => 'clear'}, default => sub { [] });
+has 'units' => (is => 'rw', isa => 'ArrayRef[Str]', traits => ['Array'], handles => { add_unit => 'push', clear_units => 'clear'}, default => sub { [] });
 has 'student_log_size' => (is => 'rw', isa => 'Int');
 has 'teacher_log_size' => (is => 'rw', isa => 'Int');
 has 'student_log_files' => (is => 'rw', isa => 'ArrayRef[LoggedFile]', traits => ['Array'], handles => { add_student_log_file => 'push', clear_student_log_files => 'clear', list_student_log_files => 'elements', map_student_log_files => 'map'});
@@ -43,15 +42,14 @@ sub data_master_unit {
 		'staged_student_files' => ($master->staged_student_files ? [$master->staged_student_files] : []),
 		'compiled_student_files' => ($master->staged_compiled_student_files ? [$master->staged_compiled_student_files] : [])
 	);
-	return \%ret;
+	return encode_json(\%ret);
 }
 
 sub new_unit {
 	my $self = shift;
 	
-	#$self->add_unit();
 	$self->clear_subtests();
-	$self->add_subtest( { 'name' => '' });
+	$self->add_subtest( encode_json({ 'name' => '' }) );
 	$self->clear_actions();
 	$self->_set_log_size();
 }
@@ -61,20 +59,15 @@ sub unit_data {
 	my $unit = shift;
 	
 	$self->_end_subtest($unit->report);
-	my %subtests = ('subtests' => $self->subtests);
-	my %work_path = ('work_path' => $unit->work_path);
-	my %data = (%{data_master_unit($unit)}, %work_path, %subtests);
-	#$self->add_unit_data(\%data);
-	$self->add_unit(\%data);
+	my $subtests = _stringattr_json('subtests', $self->subtests);
+	my $work_path = encode_json( {'work_path' => $unit->work_path} );
+	$self->add_unit(_merge_json(data_master_unit($unit), _merge_json($subtests, $work_path)));
 }
 
 sub end_master {
 	my $self = shift;
 	
-	my %master = %{$self->master};
-	$master{'units'} = $self->units;
-	
-	return \%master;
+	return _merge_json($self->master, _arrayattr_json('units', @{ $self->units }) );
 }
 
 sub _set_log_size {
@@ -109,7 +102,7 @@ sub _get_logs {
 		'teacher_log_files' => [ $self->map_teacher_log_files( sub { $_->get() })],
 	);
 	
-	return \%ret;
+	return encode_json(\%ret);
 }
 
 sub add_report {
@@ -120,7 +113,7 @@ sub add_report {
 		'tags' => [$report->allTags()],
 		'points' => $report->points,
 	);
-	$self->add_subtest_data(\%data);
+	$self->add_subtest_data(encode_json(\%data));
 	$self->add_subtest_data($self->_get_logs());
 }
 
@@ -130,7 +123,7 @@ sub new_subtest {
 	my $name = shift;
 	
 	$self->_end_subtest($report);
-	$self->add_subtest( { 'name' => $name });
+	$self->add_subtest( encode_json({ 'name' => $name }) );
 	$self->_set_log_size();
 }
 
@@ -139,24 +132,16 @@ sub _end_subtest {
 	my $report = shift;
 	
 	$self->add_report($report);
-	$self->add_subtest_data( { 'actions' => [$self->map_actions( sub { $_->get() })] } );
+	$self->add_subtest_data( _stringattr_json('actions', [$self->map_actions( sub { encode_json($_->get()) })] ) );
 	$self->clear_actions();
-}
-
-sub add_unit_data {
-	my $self = shift;
-	my $data = shift;
-	
-	my %newdata = (%{$self->get_unit(-1)}, %{$data});
-	$self->splice_unit(-1, 1, \%newdata);
 }
 
 sub add_subtest_data {
 	my $self = shift;
 	my $data = shift;
 	
-	my %newdata = (%{$self->get_subtest(-1)}, %{$data});
-	$self->splice_subtest(-1, 1, \%newdata);
+	my $str = _merge_json($self->get_subtest(-1), $data);
+	$self->splice_subtest(-1, 1, $str);
 }
 
 sub dump {
@@ -165,8 +150,39 @@ sub dump {
 	my $detailed;
 	
 	open $detailed, $filename;
-	print $detailed encode_json($session->detailed);
+	print $detailed '[';
+	for my $i (@{ $session->detailed }) {
+		print $detailed $i;
+	}
+	print $detailed ']';
 	close $detailed;
+}
+
+sub _merge_json {
+	my $first = shift;
+	my $second = shift;
+	
+	if (substr($first, 0, 1) eq substr($second, 0, 1) and (substr($first, 0, 1) eq '{' or substr($first, 0, 1) eq '[') ) {
+		return substr($first, 0, -1).",".substr($second, 1);
+	}
+	die "Cannot merge ".$first." and ".$second;
+}
+
+sub _stringattr_json {
+	my $name = shift;
+	my $json = shift;
+	
+	if (ref($json) eq 'ARRAY') {
+		$json = '['.join(',', @$json).']';
+	}
+	
+	return '{'.JSON->new->allow_nonref->encode($name).':'.$json.'}';
+}
+
+sub _arrayattr_json {
+	my $name = shift;
+	
+	return '{'.JSON->new->allow_nonref->encode($name).':['.join(',', @_).']}';
 }
 
 
