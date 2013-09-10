@@ -25,6 +25,7 @@ popd
 . /packages/run/modules-2.0/init/bash
 module add gcc-4.5.3
 module add allegro-5.1
+module add curl-7.18.2
 
 cd /home/xtoth1/kontrNG
 /packages/run/links/bin/perl /home/xtoth1/kontrNG/starter.pl &>>/home/xtoth1/kontrNG/_logs_/starter.pl
