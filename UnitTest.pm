@@ -175,7 +175,7 @@ sub _diff_generic
 	$self->difference->exec($self,$mode,$file1,$file2);
 	
 	$action->add_metadata_file('first_file', $file1);
-	$action->add_metadata_file('first_file', $file2);
+	$action->add_metadata_file('second_file', $file2);
 	$action->finished($self->difference);
 	
 	$self->detailed_log->add_action($action);
@@ -187,7 +187,7 @@ sub diff_generic {
 	my $file1 = shift;
 	my $file2 = shift;
 	
-	$self->_diff_generic($self,$mode,$file1,$file2, 'diff_generic');
+	$self->_diff_generic($mode,$file1,$file2, 'diff_generic');
 }
 
 sub analyze_stdout
