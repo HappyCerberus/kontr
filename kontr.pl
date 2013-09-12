@@ -149,7 +149,14 @@ $teacher->set_param(revision => $svn->revision,
 	timestamp => $timestamp,
 	load => $load, 
 	time => $diff->minutes.':'.(length $diff->seconds == 1 ? '0'.$diff->seconds : $diff->seconds), 
-	other_info => "Adresar vyhodnoceni je $filepath.\nPro nove odevzdani se stejnym zdrojovym kodem spustte /home/xtoth1/kontrPublic/odevzdavam ".$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".$session->user->login." ".$svn->revision."\n".$resubmission_text);
+	other_info => "Adresar vyhodnoceni je $filepath.\n".
+		"Pro nove odevzdani se stejnym zdrojovym kodem spustte:\n/home/xtoth1/kontrPublic/odevzdavam ".
+		$submission->homework->class." ".$submission->homework->name." ".$submission->mode." ".
+		$session->user->login." ".$svn->revision."\n".
+		(exists $Config->{Email}->{logs} ? "Odevzdani tohoto studenta je dostupne v aplikaci kontr-logs na url:\n".
+			$Config->{Email}->{logs}."?subject=".$session->class."&task=".$session->task.
+			"&student=".$session->user->login : "").
+		"\n".$resubmission_text);
 
 
 my @param;
