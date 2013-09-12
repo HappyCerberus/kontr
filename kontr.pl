@@ -205,4 +205,7 @@ if ($report_log) {
 	$lock->remove_lock;
 }
 
+#Save detailed log
+DetailedLog::dump ($session, ">$filepath/detailed.json");
+
 print "[KONTR] SESSION DONE\n";

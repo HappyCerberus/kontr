@@ -19,6 +19,7 @@ use File::stat;
 use Time::HiRes qw(usleep nanosleep);
 
 has 'cmd' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
+has 'args' => ( is => 'rw', isa => 'ArrayRef', traits => ['Array'], handles => { add_arg => 'push' } );
 
 has 'output_path' => ( traits => ['String'], is => 'rw', isa => 'Str', default => '' );
 has 'stdin_path' => ( traits => ['String'],  is => 'rw', isa => 'Str', default => '/dev/null' );
@@ -42,10 +43,7 @@ sub log_stdout
 	my $self = shift;
 	my $type = shift;
 
-	my $path = $self->stdout_path;
-	my $data = `cat $path`;
-	$data = "" unless defined $data;
-	$self->unit->log($data,$type);
+	$self->unit->log_file($self->stdout_path,$type);
 }
 
 sub log_stderr
@@ -53,16 +51,14 @@ sub log_stderr
 	my $self = shift;
 	my $type = shift;
 
-	my $path = $self->stderr_path;
-	my $data = `cat $path`;
-	$data = "" unless defined $data;
-	$self->unit->log($data,$type);
+	$self->unit->log_file($self->stderr_path,$type);
 }
 
 sub exec
 {
 	my $self = shift;
         my $origdir = getcwd();
+        $self->add_arg(@_);
 
         # fork the program
         my $pid = fork();
