@@ -7,6 +7,7 @@ package Session;
 
 use Moose;
 use Moose::Util::TypeConstraints;
+use DetailedLog;
 
 use StudentInfo;
 use MasterTest;
@@ -44,6 +45,8 @@ has 'attach_teacher' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Atta
 has 'attach_student' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Attachment]', default => sub { [] }, handles => { add_student_attach => 'push', student_attach_count => 'count', get_student_attach => 'get', student_attachments => 'elements' } );
 
 has 'reports' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Report]', default => sub { [] }, handles => { all_reports => 'elements', new_report => 'push' } );
+
+has 'detailed' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef', default => sub { [] }, handles => { add_detailed => 'push' } );
 
 # user, class, type
 sub BUILDARGS
@@ -98,6 +101,8 @@ sub process
 		die "Registered master script \"".$master_path."\" does not exists." unless -f $master_path;
 	}
 	
+	my $log = DetailedLog->new(session => $session);
+	
 	# processing run
 	for ($index = 0; $index < $session->masters_count; $index++)
 	{
@@ -105,7 +110,8 @@ sub process
 		my $master_test = new MasterTest();
 		eval `cat $master_path`;
 		print $@ if $@;
-		$master_test->run_tests($session);
+		$master_test->run_tests($session, $log);
+		$session->add_detailed($master_test->detailed_log);
 	}
 
 	post_test();
