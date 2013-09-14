@@ -89,6 +89,8 @@ else { $subj = $Config->{Global}->{result_subj}; }
 
 #Create human readable timestamp
 my @timestamps = ($session->timestamp =~ /^(\d+)_(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})$/);
+my $timestamp_url = "${timestamps[0]}_${timestamps[1]}${timestamps[2]}_".
+	"${timestamps[3]}${timestamps[4]}${timestamps[5]}"; #Timestamp for kontr-logs url
 $timestamps[1] =~ s/^0//; #Delete zero at the beginning of day and month
 $timestamps[2] =~ s/^0//;
 my $timestamp = $timestamps[2].". ".$timestamps[1].". ".$timestamps[0]." ". #Day, month, year
@@ -155,7 +157,8 @@ $teacher->set_param(revision => $svn->revision,
 		$session->user->login." ".$svn->revision."\n".
 		(exists $Config->{Email}->{logs} ? "Odevzdani tohoto studenta je dostupne v aplikaci kontr-logs na url:\n".
 			$Config->{Email}->{logs}."?subject=".$session->class."&task=".$session->task.
-			"&student=".$session->user->login : "").
+			"&student=".$session->user->login."&submission=".$session->user->login.
+			"_".$timestamp_url."#u_".$session->user->login : "").
 		"\n".$resubmission_text);
 
 
@@ -204,5 +207,8 @@ if ($report_log) {
 	close $report_file;
 	$lock->remove_lock;
 }
+
+#Save detailed log
+DetailedLog::dump ($session, ">$filepath/detailed.json");
 
 print "[KONTR] SESSION DONE\n";
