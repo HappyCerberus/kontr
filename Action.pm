@@ -100,7 +100,8 @@ sub get {
 		'exit_value' => $self->exec->exit_value,
 		'exit_type' => $self->exec->exit_type,
 		'created_files' => $self->created,
-		'metadata' => $self->metadata
+		'metadata' => $self->metadata,
+		'run_time' => $self->exec->duration
 	);
 	
 	return \%data;
