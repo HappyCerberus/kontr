@@ -374,6 +374,14 @@ sub log_tag {
 	$self->log(@_);
 }
 
+sub log_valgrind {
+	my $self = shift;
+	
+	$self->log_tag(@_);
+	$self->log_file($self->valgrind->grind_user, "both");
+	$self->log_file($self->valgrind->grind_path, "teacher");
+}
+
 sub subtest {
 	my $self = shift;
 	my $name = shift;
