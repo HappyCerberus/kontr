@@ -38,6 +38,16 @@ has 'exit_value' =>  (traits => ['Number'], is => 'rw', isa => 'Int', default =>
 
 has 'unit' => ( isa => 'UnitTest', is => 'rw' );
 
+has 'start_time' => ( isa => 'Int', is => 'rw' );
+has 'end_time' => ( isa => 'Int', is => 'rw' );
+
+sub duration
+{
+	my $self = shift;
+	
+	return $self->end_time - $self->start_time;
+}
+
 sub log_stdout
 {
 	my $self = shift;
@@ -112,6 +122,8 @@ sub exec
 
 		my $stdout;
 		my $stderr;
+		
+		$self->start_time($starttime);
 
 		if ($self->output_path ne '')
 		{
@@ -160,6 +172,8 @@ sub exec
 
 			usleep(50); # wait for a while
 		}
+		
+		$self->end_time(time());
 
 		if ($end_type ne 'exit')
 		{
