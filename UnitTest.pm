@@ -190,22 +190,46 @@ sub diff_generic {
 	$self->_diff_generic($mode,$file1,$file2, 'diff_generic');
 }
 
+sub _analysis_generic
+{
+	my $self = shift;
+	my $cmd = shift;
+	my $input = shift;
+	my $action_name = shift;
+	
+	my $action = new Action('name' => $action_name, 'work_path' => $self->work_path);
+	
+	$self->analysis(new Analysis(unit => $self));
+	$self->analysis->exec($self,$cmd,$input,@_);
+	
+	$action->finished($self->analysis);
+	
+	$self->detailed_log->add_action($action);
+}
+
 sub analyze_stdout
 {
 	my $self = shift;
 	my $cmd = shift;
-
-	$self->analysis(new Analysis(unit => $self));
-	$self->analysis->exec($self,$cmd,$self->execution->stdout_path,@_);
+	
+	$self->_analysis_generic($cmd, $self->execution->stdout_path, "analyze_stdout", @_);
 }
 
 sub analyze_stderr
 {
 	my $self = shift;
 	my $cmd = shift;
+	
+	$self->_analysis_generic($cmd, $self->execution->stderr_path, "analyze_stdout", @_);
+}
 
-	$self->analysis(new Analysis(unit => $self));
-	$self->analysis->exec($self,$cmd,$self->execution->stderr_path,@_);	
+sub analyze
+{
+	my $self = shift;
+	my $input = shift;
+	my $cmd = shift;
+	
+	$self->_analysis_generic($cmd, $input, "analyze", @_);
 }
 
 sub add_attachment
