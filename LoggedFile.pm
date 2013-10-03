@@ -14,16 +14,21 @@ has 'before_size' => (is => 'ro', isa => 'Int', required => 1);
 has 'filename' => (is => 'ro', isa => 'Str', required => 1);
 has 'filesize' => (is => 'ro', isa => 'Int', required => 1);
 has 'offset' => (is => 'rw', isa => 'Int'); #Offset of starting position of file in log without files
+has 'attached' => (is => 'ro', isa => 'Bool', default => 0);
 
 sub remove_from_log {
 	my $self = shift;
 	my $log = shift;
-	my $aditional_offset = shift; #Read bytes not present in log
+	my $additional_offset = shift; #Read bytes not present in log
 	
-	$self->offset($self->before_size - $aditional_offset);
-	my $result_log = substr($log, 0, $self->offset).substr($log, $self->filesize + $self->offset);
-	#TODO - file may not be commited
-	my $result_offset = $aditional_offset + $self->filesize;
+	$self->offset($self->before_size - $additional_offset);
+	
+	#If the file is attached, then it does not remove anything in the log
+	my $result_log = ($self->attached ? $log : 
+		substr($log, 0, $self->offset).substr($log, $self->filesize + $self->offset));
+
+	#TODO - the file may not be commited
+	my $result_offset = $additional_offset + ($self->attached ? 0 : $self->filesize);
 	
 	return ($result_log, $result_offset);
 }
@@ -34,7 +39,8 @@ sub get {
 	my %data = (
 		'offset' => $self->offset,
 		'filename' => $self->filename,
-		'filesize' => $self->filesize
+		'filesize' => $self->filesize,
+		'attached' => $self->attached
 	);
 	
 	return \%data;

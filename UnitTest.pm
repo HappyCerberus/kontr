@@ -239,16 +239,32 @@ sub add_attachment
 	my $type = shift;
 
 	$type = 'both' unless defined $type;
+	
+	my $filename = $self->work_path."/".$data;
+	my $filesize = -s $filename;
+	$filesize = -1 unless defined $filesize;
 
 	if ($type eq 'both' || $type eq 'teacher')
 	{
-		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->detailed_log->add_teacher_log_file(new LoggedFile(
+			'before_size' => length $self->session->teacher_log->data,
+			'filename' => $filename,
+			'filesize' => $filesize,
+			'attached' => 1
+			));
+		my $attach = new Attachment(filename => $filename);
 		$self->session->add_teacher_attach($attach);
 	}
 
 	if ($type eq 'both' || $type eq 'student')
 	{
-		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->detailed_log->add_student_log_file(new LoggedFile(
+			'before_size' => length $self->session->user_log->data,
+			'filename' => $filename,
+			'filesize' => $filesize,
+			'attached' => 1
+			));
+		my $attach = new Attachment(filename => $filename);
 		$self->session->add_student_attach($attach);
 	}
 }
