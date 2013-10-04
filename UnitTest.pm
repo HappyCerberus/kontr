@@ -193,6 +193,7 @@ sub diff_generic {
 sub _analysis_generic
 {
 	my $self = shift;
+	my $desc = shift;
 	my $cmd = shift;
 	my $input = shift;
 	my $action_name = shift;
@@ -202,6 +203,7 @@ sub _analysis_generic
 	$self->analysis(new Analysis(unit => $self));
 	$self->analysis->exec($self,$cmd,$input,@_);
 	
+	$action->add_metadata('description', $desc);
 	$action->finished($self->analysis);
 	
 	$self->detailed_log->add_action($action);
@@ -210,26 +212,29 @@ sub _analysis_generic
 sub analyze_stdout
 {
 	my $self = shift;
+	my $desc = shift;
 	my $cmd = shift;
 	
-	$self->_analysis_generic($cmd, $self->execution->stdout_path, "analyze_stdout", @_);
+	$self->_analysis_generic($desc, $cmd, $self->execution->stdout_path, "analyze_stdout", @_);
 }
 
 sub analyze_stderr
 {
 	my $self = shift;
+	my $desc = shift;
 	my $cmd = shift;
 	
-	$self->_analysis_generic($cmd, $self->execution->stderr_path, "analyze_stdout", @_);
+	$self->_analysis_generic($desc, $cmd, $self->execution->stderr_path, "analyze_stdout", @_);
 }
 
 sub analyze
 {
 	my $self = shift;
+	my $desc = shift;
 	my $input = shift;
 	my $cmd = shift;
 	
-	$self->_analysis_generic($cmd, $input, "analyze", @_);
+	$self->_analysis_generic($desc, $cmd, $input, "analyze", @_);
 }
 
 sub add_attachment
