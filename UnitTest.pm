@@ -190,22 +190,46 @@ sub diff_generic {
 	$self->_diff_generic($mode,$file1,$file2, 'diff_generic');
 }
 
+sub _analysis_generic
+{
+	my $self = shift;
+	my $cmd = shift;
+	my $input = shift;
+	my $action_name = shift;
+	
+	my $action = new Action('name' => $action_name, 'work_path' => $self->work_path);
+	
+	$self->analysis(new Analysis(unit => $self));
+	$self->analysis->exec($self,$cmd,$input,@_);
+	
+	$action->finished($self->analysis);
+	
+	$self->detailed_log->add_action($action);
+}
+
 sub analyze_stdout
 {
 	my $self = shift;
 	my $cmd = shift;
-
-	$self->analysis(new Analysis(unit => $self));
-	$self->analysis->exec($self,$cmd,$self->execution->stdout_path,@_);
+	
+	$self->_analysis_generic($cmd, $self->execution->stdout_path, "analyze_stdout", @_);
 }
 
 sub analyze_stderr
 {
 	my $self = shift;
 	my $cmd = shift;
+	
+	$self->_analysis_generic($cmd, $self->execution->stderr_path, "analyze_stdout", @_);
+}
 
-	$self->analysis(new Analysis(unit => $self));
-	$self->analysis->exec($self,$cmd,$self->execution->stderr_path,@_);	
+sub analyze
+{
+	my $self = shift;
+	my $input = shift;
+	my $cmd = shift;
+	
+	$self->_analysis_generic($cmd, $input, "analyze", @_);
 }
 
 sub add_attachment
@@ -215,16 +239,32 @@ sub add_attachment
 	my $type = shift;
 
 	$type = 'both' unless defined $type;
+	
+	my $filename = $self->work_path."/".$data;
+	my $filesize = -s $filename;
+	$filesize = -1 unless defined $filesize;
 
 	if ($type eq 'both' || $type eq 'teacher')
 	{
-		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->detailed_log->add_teacher_log_file(new LoggedFile(
+			'before_size' => length $self->session->teacher_log->data,
+			'filename' => $filename,
+			'filesize' => $filesize,
+			'attached' => 1
+			));
+		my $attach = new Attachment(filename => $filename);
 		$self->session->add_teacher_attach($attach);
 	}
 
 	if ($type eq 'both' || $type eq 'student')
 	{
-		my $attach = new Attachment(filename => $self->work_path."/".$data);
+		$self->detailed_log->add_student_log_file(new LoggedFile(
+			'before_size' => length $self->session->user_log->data,
+			'filename' => $filename,
+			'filesize' => $filesize,
+			'attached' => 1
+			));
+		my $attach = new Attachment(filename => $filename);
 		$self->session->add_student_attach($attach);
 	}
 }
