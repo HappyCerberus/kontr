@@ -224,7 +224,7 @@ sub analyze_stderr
 	my $desc = shift;
 	my $cmd = shift;
 	
-	$self->_analysis_generic($desc, $cmd, $self->execution->stderr_path, "analyze_stdout", @_);
+	$self->_analysis_generic($desc, $cmd, $self->execution->stderr_path, "analyze_stderr", @_);
 }
 
 sub analyze
