@@ -142,6 +142,45 @@ sub run_grind
 	$self->detailed_log->add_action($action);
 }
 
+# Splits string into array, using spaces (' ') as delimiter
+# escape sequences: '\ ', '\\'
+sub _split_argument_line
+{
+	my $s = shift;
+	my @arr = ($s =~ /((?:(?:[^\s\\])|(?:\\\\)|(?:\\\s))+)/g);
+	return map
+	{
+		my $v = $_;
+		$v =~ s/\\(\\|\s)/$1/g;
+		$v
+	} @arr;
+}
+
+# like 'run' but all arguments are in one string
+sub run_split
+{
+	my $self = shift;
+	my $input = shift;
+	my $args = shift;
+	my @array = _split_argument_line($args);
+
+	$self->execution(new Run(unit => $self));
+	$self->execution->exec($self,$input,@array);
+}
+
+# like 'run_grind' but all arguments are in one string
+sub run_grind_split
+{
+	my $self = shift;
+	my $input = shift;
+	my $args = shift;
+	my @array = _split_argument_line($args);
+
+	$self->valgrind(new Valgrind(unit => $self));
+	$self->valgrind->exec($self,$input,@array);
+	$self->execution($self->valgrind);
+}
+
 sub diff_stdout
 {
 	my $self = shift;
@@ -224,7 +263,7 @@ sub analyze_stderr
 	my $desc = shift;
 	my $cmd = shift;
 	
-	$self->_analysis_generic($desc, $cmd, $self->execution->stderr_path, "analyze_stdout", @_);
+	$self->_analysis_generic($desc, $cmd, $self->execution->stderr_path, "analyze_stderr", @_);
 }
 
 sub analyze
