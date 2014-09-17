@@ -63,6 +63,10 @@ sub compile
 	my $Config = Config::Tiny->new;
 	$Config = Config::Tiny->read('config.ini');
 
+	if ($self->session->available_file(sub { /cpp11/ } ) ) {
+		$self->extra_compiler_flags("-std=c++11 ".$self->extra_compiler_flags);
+	}
+
 	my $compilation_action = new Action(name => 'compilation', work_path => $self->work_path);
 	
 	# compile
