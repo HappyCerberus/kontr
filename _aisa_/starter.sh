@@ -23,7 +23,7 @@ timeout 120 git pull
 popd
 
 . /packages/run/modules-2.0/init/bash
-module add gcc-4.5.3
+module add gcc-4.8.2
 module add allegro-5.1
 module add curl-7.18.2
 
