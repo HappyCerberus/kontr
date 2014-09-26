@@ -22,6 +22,11 @@ around 'exec' => sub
 	my $cmd = shift;
 	my $input = shift;
 
+	if ($unit_test->session->got_value('run_timeout'))
+	{ $self->limit_runtime($unit_test->session->get_value('run_timeout')); }
+	if ($unit_test->session->got_value('run_output'))
+	{ $self->limit_output($unit_test->session->get_value('run_output')); }
+
 	$self->work_path($unit_test->work_path);
 	$self->cmd($cmd);
 	$self->stdin_path($input);
