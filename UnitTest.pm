@@ -167,7 +167,7 @@ sub run_split
 	my $input = shift;
 	my $args = shift;
 	my @array = _split_argument_line($args);
-	my $action = new Action('name' => 'run', work_path => $self->work_path)
+	my $action = new Action('name' => 'run', work_path => $self->work_path);
 
 	$self->execution(new Run(unit => $self));
 	$self->execution->exec($self,$input,@array);
