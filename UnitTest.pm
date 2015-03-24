@@ -167,9 +167,13 @@ sub run_split
 	my $input = shift;
 	my $args = shift;
 	my @array = _split_argument_line($args);
+	my $action = new Action('name' => 'run', work_path => $self->work_path)
 
 	$self->execution(new Run(unit => $self));
 	$self->execution->exec($self,$input,@array);
+	
+	$action->finished($self->execution);
+	$self->detailed_log->add_action($action);
 }
 
 # like 'run_grind' but all arguments are in one string
@@ -179,10 +183,19 @@ sub run_grind_split
 	my $input = shift;
 	my $args = shift;
 	my @array = _split_argument_line($args);
+	my $action = new Action('name' => 'run', work_path => $self->work_path);
 
 	$self->valgrind(new Valgrind(unit => $self));
 	$self->valgrind->exec($self,$input,@array);
 	$self->execution($self->valgrind);
+	
+	$action->add_metadata('grind_errors', $self->valgrind->grind_errors);
+	$action->add_metadata_file('grind_data', $self->valgrind->grind_data);
+	$action->add_metadata_file('grind_user', $self->valgrind->grind_user);
+	$action->add_metadata_file('grind_path', $self->valgrind->grind_path);
+	$action->finished($self->execution);
+
+	$self->detailed_log->add_action($action);
 }
 
 sub diff_stdout
