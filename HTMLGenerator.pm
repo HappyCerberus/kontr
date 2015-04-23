@@ -35,9 +35,13 @@ sub generate
 		my $html = `basename $_`;
 		chomp $html;
 		$html = $work_path."/".$html.".html";
-		`vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>/dev/null`;
+		my $err = `vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 1>/dev/null`;
+		if ($err) {
+			print "html generator error: $err\n";
+		}
 		if (not -f $html) {
 			`cp $_ $html`;
+			print "html generator: no html generated, instead created file copy\n";
 		}
 		if (-r $html) { $self->add_file($html); }
 	}
