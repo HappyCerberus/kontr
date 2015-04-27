@@ -40,10 +40,11 @@ sub generate
 			print "html generator error: $err\n";
 		}
 		if (not -f $html) {
+			$self->add_file($_);
 			`cp $_ $html`;
 			print "html generator: no html generated, instead created file copy\n";
 		}
-		if (-r $html) { $self->add_file($html); }
+		else { $self->add_file($html); }
 	}
 }
 
