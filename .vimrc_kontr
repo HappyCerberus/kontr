@@ -2,3 +2,4 @@ set nocompatible
 set bg=dark
 set number
 syntax on
+set viminfo="NONE"
