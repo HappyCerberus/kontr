@@ -35,7 +35,7 @@ sub generate
 		my $html = `basename $_`;
 		chomp $html;
 		$html = $work_path."/".$html.".html";
-		my $err = `vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_`;
+		my $err = `vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>&1`;
 		if ($err) {
 			print "html generator error: $err\n";
 		}
