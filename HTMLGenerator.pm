@@ -36,13 +36,11 @@ sub generate
 		chomp $html;
 		$html = $work_path."/".$html.".html";
 		my $err = `vim -u .vimrc_kontr -c ':TOhtml' -c ':x $html' -c ':qa!' $_ 2>&1`;
-		if ($err) {
-			print "html generator error: $err\n";
-		}
 		if (not -f $html) {
 			$self->add_file($_);
 			`cp $_ $html`;
 			print "html generator: no html generated, instead created file copy\n";
+			print "html generator output: $err\n";
 		}
 		else { $self->add_file($html); }
 	}
