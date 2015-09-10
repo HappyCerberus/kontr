@@ -249,7 +249,7 @@ sub fetch
 	my $prefix = $self->path.'/'.$self->session->task.'/';
 	my @files = read_file($self->config->{Tests}->{files_path}."/".$self->session->class."/".$self->session->task."/required_files");
 	my @required = map { my $s = $prefix.$_; $s =~ s/\s+$//; $s; } (grep /^[^\?]/, @files);
-	my @optional = map { my $s = $prefix.substr($_, 1); $s =~ s/\s+$//; $s; } (grep /^\?/, ('?cpp11', @files));
+	#my @optional = map { my $s = $prefix.substr($_, 1); $s =~ s/\s+$//; $s; } (grep /^\?/, ('?cpp11', @files));
 
 	for my $file (@required) {
 		my $res = $self->_fetch_file($file);
