@@ -32,7 +32,7 @@ has 'stage_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef
 
 has 'compiled_student_files' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { stage_compiled_student_file => 'push', staged_compiled_student_files => 'elements', compiled_student_files_string => 'join' } );
 
-has 'report' => ( is => 'rw', isa => 'Report', lazy_build => 1, handles => { add_tag => 'addTag', add_points => 'addPoints' } );
+has 'report' => ( is => 'rw', isa => 'Report', lazy_build => 1, handles => { add_tag => 'addTag', add_points => 'add_vp_points' } );
 has 'detailed_log' => ( is => 'rw', isa => 'DetailedLog', required => 1);
 
 has 'master' => ( is => 'rw', isa => 'MasterTest' );
@@ -462,7 +462,7 @@ sub log_run_fail
 sub _build_report {
 	my $self = shift;
 	
-	my $res = new Report(master => $self->master->name, unit => $self->name);
+	my $res = new Report(master => $self->master->name, unit => $self->name, unittest => $self);
 	$self->session->new_report($res);
 	return $res;
 }
@@ -489,7 +489,7 @@ sub subtest {
 	
 	$self->detailed_log->new_subtest($self->report, $name);
 		
-	my $res = new Report(master => $self->master->name, unit => $self->name, subtest => $name);
+	my $res = new Report(master => $self->master->name, unit => $self->name, subtest => $name, unittest => $self);
 	$self->session->new_report($res);
 	$self->report($res);	
 }

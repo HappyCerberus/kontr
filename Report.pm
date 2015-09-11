@@ -9,6 +9,7 @@ package Report;
 
 #use MasterTest;
 #use UnitTest;
+use UnitTest;
 use Moose;
 use Moose::Util::TypeConstraints;
 
@@ -16,9 +17,20 @@ use Moose::Util::TypeConstraints;
 #has 'unit' => ( is => 'ro', isa => 'UnitTest', required => 1 );
 has 'master' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'unit' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'unittest' => ( isa => 'UnitTest', is => 'rw', required => 1 );
 has 'subtest' => ( is => 'rw', isa => 'Str', predicate => 'has_subtest' );
 has 'tags' => ( traits => ['Array'], is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] }, handles => { addTag => 'push', allTags => 'elements', hasTag => 'grep' } );
 has 'points' => ( traits => ['Hash'], is => 'rw', isa => 'HashRef[Num]', default => sub { {} }, handles => { addPoints => 'set', allPoints => 'kv' } );
+
+sub add_vp_points {
+       my $self = shift;       
+       $self->addPoints(@_);
+
+       if ($self->unittest->session->class eq 'pb161' && $self->unittest->valgrind && $self->unittest->valgrind->grind_errors) {
+               my $points = pop @_;
+               $self->addPoints(valgrind => $points*(-2/5));
+       }
+}
 
 sub summary {
 	my $self = shift;
