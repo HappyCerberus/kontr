@@ -77,9 +77,33 @@ function files {
 	fi
 }
 
+function unitialised {
+    local jumps="`cat $FILE | grep -i 'Conditional jump or move depends on uninitialised value(s)' | wc -l`"
+    local uses="`cat $FILE | grep -i 'Use of uninitialised value of size' | wc -l`"
+    if [ $jumps -eq 0 -a $uses -eq 0 ]; then
+        echo "UNITIALISED: 0 0" >&1
+        echo "No use of unitialised values" >&2
+    else
+        echo "UNITIALISED: ${jumps} ${uses}" >&1
+        echo "Use of unitialised values: ${jumps} jumps and ${uses} uses" >&2
+    fi
+}
+function memcpy_overlap {
+    local output="`cat $FILE | grep -i 'Source and destination overlap in memcpy' | wc -l`"
+    if [ $output -eq 0 ]; then
+        echo "MEMCPY_OVERLAP: 0" >&1
+        echo "No memcpy overlap" >&2
+    else
+        echo "MEMCPY_OVERLAP: ${output}" >&1
+        echo "Number of memcpy overlaps: ${output}" >&2
+    fi
+}
+
 mismatched 
 invalid 
 read 
 write 
 leaks 
 files 
+unitialised
+memcpy_overlap
