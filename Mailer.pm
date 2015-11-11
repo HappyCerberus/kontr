@@ -49,7 +49,8 @@ sub message
 		$msg->attach(	Type => $mime,
 				Path => $attachment,
 				Filename => $name,
-				Disposition => "attachment"
+				Disposition => "attachment",
+		                Encoding => "base64"
 				);
 	}
 
