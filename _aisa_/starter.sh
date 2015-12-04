@@ -17,6 +17,13 @@ pushd /home/xtoth1/kontrNG
 timeout 120 git pull
 popd
 
+#Redownload tests if needed
+if [ ! -d /home/xtoth1/kontrNG/_tests_ ]; then
+    pushd /home/xtoth1/kontrNG
+    git clone --depth=1 git@github.com:xbrukner/kontr_tests.git
+    popd
+fi
+
 # update tests
 pushd /home/xtoth1/kontrNG/_tests_
 timeout 120 git pull
