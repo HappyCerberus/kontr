@@ -27,6 +27,8 @@ if [ ! -d /home/xtoth1/kontrNG/_tests_ ]; then
     popd
 fi
 
+rm -rf /home/xtoth1/tests2
+
 # update tests
 pushd /home/xtoth1/kontrNG/_tests_
 timeout 120 git pull
