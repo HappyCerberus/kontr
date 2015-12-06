@@ -19,12 +19,12 @@ popd
 
 #Redownload tests if needed
 if [ ! -d /home/xtoth1/kontrNG/_tests_ ]; then
-    pushd /home/xtoth1/kontrNG
-    git clone --depth=1 git@github.com:xbrukner/kontr_tests.git _tests_
-    popd
     if [ -d /home/xtoth1/kontr_tests ]; then
         rm -rf /home/xtoth1/kontr_tests
     fi
+    pushd /home/xtoth1/kontrNG
+    git clone --depth=1 git@github.com:xbrukner/kontr_tests.git _tests_
+    popd
 fi
 
 # update tests
