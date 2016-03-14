@@ -19,7 +19,7 @@ sub add_line
 	my $self = shift;
 	my $line = shift;
 
-	$self->add_raw($line."\n");
+	$self->add_raw( ($line // "") ."\n");
 }
 
 sub add_raw 
