@@ -26,7 +26,8 @@ sub add_vp_points {
        my $self = shift;       
        $self->addPoints(@_);
 
-       if ($self->unittest->session->class eq 'pb161' && $self->unittest->valgrind && $self->unittest->valgrind->grind_errors) {
+       if (($self->unittest->session->class eq 'pb161' || $self->unittest->session->class eq 'pb071')
+		&& $self->unittest->valgrind && $self->unittest->valgrind->grind_errors) {
                my $points = pop @_;
                $self->addPoints(valgrind => $points*(-2/5));
        }
